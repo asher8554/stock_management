@@ -21,7 +21,7 @@ export default {
       return json({ ok: true }, 200, headers);
     }
     if (request.method === "GET" && pathname === "/v1/portfolio") {
-      if (ctx?.access?.identity?.email !== env.ALLOWED_EMAIL) return json({ error: "forbidden" }, 403, headers);
+      if (!env.ALLOWED_EMAIL || ctx?.access?.identity?.email !== env.ALLOWED_EMAIL) return json({ error: "forbidden" }, 403, headers);
       const snapshot = await env.PORTFOLIO_CACHE.get("latest");
       return snapshot ? new Response(snapshot, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } }) : json({ error: "not_synced" }, 503, headers);
     }

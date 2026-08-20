@@ -4,7 +4,7 @@
 
 Cloudflare Dashboard에서 `Workers & Pages` > `stock-management-private-api` > `Access`를 연다.
 
-`Protect this Worker`를 선택하고 Google 로그인 방식을 추가한다. Allow 정책에는 이메일 `asher8554@gmail.com`만 넣는다. 이 설정이 끝날 때까지 로컬 동기화를 실행하지 않는다.
+`Protect this Worker`를 선택하고 Google 로그인 방식을 추가한다. Allow 정책에는 본인 이메일 하나만 넣고, `ALLOWED_EMAIL`도 Worker Secret으로 설정한다. 이 설정이 끝날 때까지 로컬 동기화를 실행하지 않는다.
 
 ## 2. 수집 토큰
 
@@ -12,6 +12,7 @@ PowerShell에서 아래 명령을 실행한다. 토큰 값은 직접 입력하�
 
 ```powershell
 npx wrangler secret put INGEST_TOKEN
+npx wrangler secret put ALLOWED_EMAIL
 ```
 
 같은 값을 현재 사용자 환경변수 `PORTFOLIO_INGEST_TOKEN`에 저장한다. Worker 주소는 아래 값이다.

@@ -3,7 +3,6 @@
   "name": "stock-management-private-api",
   "main": "worker.mjs",
   "compatibility_date": "2026-08-20",
-  "vars": { "ALLOWED_EMAIL": "asher8554@gmail.com" },
   "kv_namespaces": [
     { "binding": "PORTFOLIO_CACHE", "id": "277e4dcdc9c24205ab76377c4024b68f" }
   ]
