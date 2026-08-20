@@ -8,7 +8,7 @@ const env = {
   GITHUB_CLIENT_ID: "client-id",
   GITHUB_CLIENT_SECRET: "client-secret",
   GITHUB_SESSION_SECRET: "session-secret",
-  ALLOWED_GITHUB_LOGIN: "owner",
+  ALLOWED_GITHUB_LOGIN: "\uFEFFowner",
   PORTFOLIO_CACHE: { get: (key) => cache.get(key), put: (key, value) => cache.set(key, value), delete: (key) => cache.delete(key) },
 };
 const snapshot = { updatedAt: "2026-08-21T00:00:00Z", accounts: [] };

@@ -35,7 +35,8 @@ async function hasSession(request, secret) {
   }
 }
 
-const githubConfigured = (env) => ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "GITHUB_SESSION_SECRET", "ALLOWED_GITHUB_LOGIN"].every((name) => env[name]);
+const allowedGitHubLogin = (env) => env.ALLOWED_GITHUB_LOGIN?.trim().toLowerCase();
+const githubConfigured = (env) => [env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET, env.GITHUB_SESSION_SECRET, allowedGitHubLogin(env)].every(Boolean);
 const callbackUrl = (request) => new URL("/auth/github/callback", request.url).toString();
 const redirect = (url) => Response.redirect(url, 302);
 
@@ -44,7 +45,7 @@ async function startGitHubLogin(request, env) {
   const state = crypto.randomUUID();
   await env.PORTFOLIO_CACHE.put(`oauth:${state}`, "1", { expirationTtl: 600 });
   const url = new URL("https://github.com/login/oauth/authorize");
-  url.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callbackUrl(request), state, login: env.ALLOWED_GITHUB_LOGIN, allow_signup: "false" }).toString();
+  url.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callbackUrl(request), state, login: allowedGitHubLogin(env), allow_signup: "false" }).toString();
   return redirect(url);
 }
 
@@ -62,7 +63,7 @@ async function completeGitHubLogin(request, env) {
   }).then((response) => response.ok ? response.json() : null).catch(() => null);
   if (!exchange?.access_token) return json({ error: "github_oauth_failed" }, 502);
   const user = await fetch("https://api.github.com/user", { headers: { authorization: `Bearer ${exchange.access_token}`, "user-agent": "stock-management-private-api" } }).then((response) => response.ok ? response.json() : null).catch(() => null);
-  if (!user?.login || user.login.toLowerCase() !== env.ALLOWED_GITHUB_LOGIN.toLowerCase()) return json({ error: "forbidden" }, 403);
+  if (!user?.login || user.login.toLowerCase() !== allowedGitHubLogin(env)) return json({ error: "forbidden" }, 403);
   const session = await createSession(user.login, env.GITHUB_SESSION_SECRET);
   return redirect(`https://asher8554.github.io/stock_management/#github-auth=${encodeURIComponent(session)}`);
 }
