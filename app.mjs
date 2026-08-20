@@ -23,9 +23,23 @@ names.forEach((name) => [name, `${name}-number`].forEach((id) => document.getEle
 })));
 
 const dialog = document.getElementById("private-dialog");
+const apiBase = "https://stock-management-private-api.household-account-asher.workers.dev";
 let timer;
 const mark = document.getElementById("mark");
 mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.showModal(), 5000); });
 ["pointerup", "pointerleave", "pointercancel"].forEach((event) => mark.addEventListener(event, () => clearTimeout(timer)));
 document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
+document.getElementById("load-private").addEventListener("click", async () => {
+  const status = document.getElementById("private-status");
+  document.getElementById("private-summary").hidden = false;
+  status.textContent = "보유 정보를 불러오는 중입니다.";
+  const response = await fetch(`${apiBase}/v1/portfolio`, { credentials: "include" }).catch(() => null);
+  if (!response?.ok) {
+    status.textContent = response?.status === 403 ? "Cloudflare 인증이 필요합니다." : "아직 로컬 동기화 데이터가 없습니다.";
+    return;
+  }
+  const snapshot = await response.json();
+  status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
+  dialog.close();
+});
 render();
