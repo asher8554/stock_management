@@ -18,3 +18,4 @@
 - 2026-08-21: 로컬 Python 동기화기가 토스증권 전체 보유종목과 한국투자증권 국내주식 잔고를 조회해 Worker KV로 전송하도록 작성했다. 개인 API 조회는 Cloudflare Access의 비공개 이메일 설정으로 제한하며, Access 설정 권한은 현재 OAuth 토큰에 없어 대시보드에서 한 번 설정해야 한다.
 - 2026-08-21: KV namespace `PORTFOLIO_CACHE`와 Worker `stock-management-private-api`를 배포했다. `/health`는 200, Access 없는 `/v1/portfolio`는 403이다. Worker는 아직 Access 정책과 `INGEST_TOKEN`이 없으므로 스냅샷을 수집하지 않는다.
 - 2026-08-21: 공개 파일·Worker 변수에서 개인 이메일을 제거하고 다크 테마를 적용했다. `ALLOWED_EMAIL` Secret이 없거나 Access 인증이 없으면 `/v1/portfolio`가 403인지 배포 환경에서 확인했다. 기존 공개 Git 커밋에는 이메일이 남아 있어 이력 재작성은 사용자 확인이 필요하다.
+- 2026-08-21: 사용자 스크린샷에서 native dialog의 기본 전경색이 검정으로 렌더링된 것을 확인했다. 다크 모달에 명시적 전경색, 배경색, 고대비 버튼, 버튼 묶음을 적용한다.
