@@ -24,6 +24,12 @@ names.forEach((name) => [name, `${name}-number`].forEach((id) => document.getEle
 
 const dialog = document.getElementById("private-dialog");
 const apiBase = "https://stock-management-private-api.household-account-asher.workers.dev";
+const sessionKey = "github-session";
+const callbackToken = new URLSearchParams(location.hash.slice(1)).get("github-auth");
+if (callbackToken) {
+  sessionStorage.setItem(sessionKey, callbackToken);
+  history.replaceState(null, "", `${location.pathname}${location.search}`);
+}
 let timer;
 const mark = document.getElementById("mark");
 mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.showModal(), 5000); });
@@ -33,9 +39,10 @@ document.getElementById("load-private").addEventListener("click", async () => {
   const status = document.getElementById("private-status");
   document.getElementById("private-summary").hidden = false;
   status.textContent = "보유 정보를 불러오는 중입니다.";
-  const response = await fetch(`${apiBase}/v1/portfolio`, { credentials: "include" }).catch(() => null);
+  const session = sessionStorage.getItem(sessionKey);
+  const response = await fetch(`${apiBase}/v1/portfolio`, { headers: session ? { authorization: `Bearer ${session}` } : {} }).catch(() => null);
   if (!response?.ok) {
-    status.textContent = response?.status === 403 ? "Cloudflare 인증이 필요합니다." : "아직 로컬 동기화 데이터가 없습니다.";
+    status.textContent = response?.status === 403 ? "GitHub 로그인이 필요합니다." : "아직 로컬 동기화 데이터가 없습니다.";
     return;
   }
   const snapshot = await response.json();
