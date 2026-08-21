@@ -33,7 +33,7 @@ if (callbackToken) {
 }
 let timer;
 const mark = document.getElementById("mark");
-mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.showModal(), 5000); });
+mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.showModal(), 3000); });
 ["pointerup", "pointerleave", "pointercancel"].forEach((event) => mark.addEventListener(event, () => clearTimeout(timer)));
 document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));

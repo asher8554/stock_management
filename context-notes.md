@@ -24,3 +24,4 @@
 - 토스증권 Open API는 `client_id`와 `client_secret`으로 토큰을 발급하고, 잔고 조회에는 `X-Tossinvest-Account`가 필요하다.
 - 공개 GitHub Pages는 GitHub 로그인 뒤 Worker의 `/v1/portfolio` 응답만 표시한다. 계좌·종목 데이터는 공개 정적 파일에 넣지 않는다.
 - 현재 `.env`에는 Worker 수집용 `PORTFOLIO_INGEST_URL`과 `PORTFOLIO_INGEST_TOKEN`이 없어 실제 스냅샷 전송은 보류한다.
+- 관리자 진입 길게 누르기 시간을 5초에서 3초로 줄였다.
