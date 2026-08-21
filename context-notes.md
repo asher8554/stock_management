@@ -41,3 +41,9 @@
 - User clarified that the private account heading must be 한국투자증권 계좌, not a child's name or a generic personal-account label.
 # 2026-08-21 actual allocation and market metrics
 - User approved a split design: authenticated KIS cash/stock allocation, plus public delayed KRX and daily FRED market metrics through a cached Worker endpoint. Real-time KRX data is excluded because it requires separate licensing.
+# 2026-08-21 KRX endpoint clarification
+- KRX sample requests require a category path before the API ID, so `KRX_KOSPI_API_ID` and `KRX_GOLD_API_ID` alone cannot form a request URL. A safe schema probe returned HTTP 404. Require each service's full sample URL, excluding the AUTH_KEY value.
+# 2026-08-21 KRX authorization state
+- The configured KRX authentication key has the expected non-secret shape, but KRX returned HTTP 401 for both sample and service URL forms. The service application is not usable yet; check API service utilization approval before implementation.
+# 2026-08-21 KRX authorization verified
+- After service approval, both configured KRX routes returned HTTP 200. Responses were empty because the daily services require request-date fields. The configured KOSPI 100 and gold services are daily data APIs, so the UI must not present them as real-time or intraday delayed data.

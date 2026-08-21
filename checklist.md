@@ -45,6 +45,7 @@
 # Actual allocation and market metrics
 - [x] Design approved.
 - [x] Design specification written.
-- [ ] User reviews the specification.
+- [x] User reviews the specification.
+- [x] KRX service authorization verified.
 - [ ] Implement KIS actual allocation.
 - [ ] Implement market data cache and UI.
