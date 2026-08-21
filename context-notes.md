@@ -77,3 +77,6 @@
 
 # 2026-08-22 header icon and allocation labels
 - The supplied lower-left portfolio-card image was isolated into `assets/portfolio-mark.png` and used by both header marks. Target-bar segments now center their percentage labels regardless of allocation class.
+
+# 2026-08-22 TradingView analysis page
+- User approved the free Advanced Chart widget path. It will provide TradingView's own indicator and drawing UI. The page will persist only its own selected symbol, interval, and watchlist in browser local storage because the hosted iframe does not expose full chart-layout persistence to the application.
