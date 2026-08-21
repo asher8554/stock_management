@@ -51,7 +51,7 @@ class TossCredentialsTest(unittest.TestCase):
     def test_kis_snapshot_includes_cash_and_stock_value(self):
         account = kis_snapshot({
             "output1": [{"hldg_qty": "2", "evlu_amt": "3000"}],
-            "output2": [{"dnca_tot_amt": "7000", "tot_evlu_amt": "3000"}],
+            "output2": [{"dnca_tot_amt": "7000", "tot_evlu_amt": "10000", "scts_evlu_amt": "3000"}],
         })
         self.assertEqual(account["cash"], "7000")
         self.assertEqual(account["stockValue"], "3000")

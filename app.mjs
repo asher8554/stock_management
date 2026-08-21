@@ -64,11 +64,26 @@ function renderActualAllocation(snapshot) {
   const values = actualAllocation(snapshot);
   const container = document.getElementById("actual-allocation");
   container.replaceChildren();
+  const title = document.createElement("p");
+  title.className = "eyebrow";
+  title.textContent = "ACTUAL ALLOCATION";
+  const content = document.createElement("div");
+  content.className = "actual-allocation-content";
+  const ring = document.createElement("div");
+  ring.className = "actual-ring";
+  ring.style.setProperty("--cash-p", `${values.cashPercent}%`);
+  const center = document.createElement("span");
+  center.innerHTML = "<b>100</b><small>%</small>";
+  ring.append(center);
+  const details = document.createElement("div");
+  details.className = "actual-allocation-details";
   [["현금", values.cash, values.cashPercent], ["현재 보유주식", values.stock, values.stockPercent]].forEach(([label, value, percent]) => {
     const item = document.createElement("p");
     item.textContent = `${label} ${money(value)} · ${percent}%`;
-    container.append(item);
+    details.append(item);
   });
+  content.append(ring, details);
+  container.append(title, content);
   container.hidden = false;
 }
 function renderHoldings(snapshot) {

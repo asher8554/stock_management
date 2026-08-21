@@ -65,7 +65,7 @@ def kis_snapshot(data):
     summary = data["output2"][0]
     return {"provider": "kis", "items": [{
         "symbol": item.get("pdno"), "name": item.get("prdt_name"), "currency": "KRW", "quantity": item.get("hldg_qty"), "lastPrice": item.get("prpr"), "averagePurchasePrice": item.get("pchs_avg_pric"), "marketValue": item.get("evlu_amt"),
-    } for item in data["output1"] if item.get("hldg_qty") != "0"], "marketValue": summary.get("tot_evlu_amt"), "cash": summary.get("dnca_tot_amt"), "stockValue": summary.get("tot_evlu_amt")}
+    } for item in data["output1"] if item.get("hldg_qty") != "0"], "marketValue": summary.get("tot_evlu_amt"), "cash": summary.get("dnca_tot_amt"), "stockValue": summary.get("scts_evlu_amt")}
 
 
 def kis_account():
