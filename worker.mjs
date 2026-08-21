@@ -7,8 +7,6 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 
 const authorized = (request, token) => request.headers.get("authorization") === `Bearer ${token}`;
 const cors = (request) => request.headers.get("origin") === "https://asher8554.github.io" ? { "access-control-allow-origin": "https://asher8554.github.io", "access-control-allow-headers": "authorization, content-type", "vary": "origin" } : {};
-const KRX_KOSPI_URL = "https://data-dbg.krx.co.kr/svc/sample/apis/idx/kospi_dd_trd";
-const KRX_GOLD_URL = "https://data-dbg.krx.co.kr/svc/sample/apis/gen/gold_bydd_trd";
 const base64Url = (value) => btoa(String.fromCharCode(...new Uint8Array(value))).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 const fromBase64Url = (value) => Uint8Array.from(atob(value.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((value.length + 3) % 4)), (character) => character.charCodeAt(0));
 
@@ -42,21 +40,8 @@ const githubConfigured = (env) => [env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRE
 const callbackUrl = (request) => new URL("/auth/github/callback", request.url).toString();
 const redirect = (url) => Response.redirect(url, 302);
 const marketHeaders = (headers) => ({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
-const koreaDate = (daysAgo) => {
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(Date.now() - daysAgo * 86400000));
-  return Object.fromEntries(parts.map(({ type, value }) => [type, value])).year + Object.fromEntries(parts.map(({ type, value }) => [type, value])).month + Object.fromEntries(parts.map(({ type, value }) => [type, value])).day;
-};
 const number = (value) => Number(String(value).replaceAll(",", ""));
 const metric = (value, asOf, source, unit = "") => ({ value: Number.isFinite(number(value)) ? number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : String(value), asOf, source, unit });
-
-async function krxRows(url, key) {
-  for (let daysAgo = 1; daysAgo <= 7; daysAgo += 1) {
-    const asOf = koreaDate(daysAgo);
-    const body = await fetch(`${url}?basDd=${asOf}`, { headers: { AUTH_KEY: key } }).then((response) => response.ok ? response.json() : null).catch(() => null);
-    if (body?.OutBlock_1?.length) return body.OutBlock_1;
-  }
-  return [];
-}
 
 async function fredMetric(id, unit, key) {
   if (!key) throw new Error("fred_not_configured");
@@ -70,25 +55,22 @@ async function fredMetric(id, unit, key) {
 }
 
 async function freshMarket(env) {
-  if (!env.KRX_API_KEY) throw new Error("krx_not_configured");
-  const [kospiResult, goldResult, sp500Result, treasury10Result, treasury30Result] = await Promise.allSettled([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetric("SP500", "pt", env.FRED_API_KEY), fredMetric("DGS10", "%", env.FRED_API_KEY), fredMetric("DGS30", "%", env.FRED_API_KEY)]);
+  const [sp500Result, treasury10Result, treasury30Result] = await Promise.allSettled([fredMetric("SP500", "pt", env.FRED_API_KEY), fredMetric("DGS10", "%", env.FRED_API_KEY), fredMetric("DGS30", "%", env.FRED_API_KEY)]);
   const value = (result, fallback) => result.status === "fulfilled" ? result.value : fallback;
-  const kospiRows = value(kospiResult, []);
-  const goldRows = value(goldResult, []);
   const sp500 = value(sp500Result, null);
   const treasury10 = value(treasury10Result, null);
   const treasury30 = value(treasury30Result, null);
-  const kospi = kospiRows.find((row) => row.IDX_NM === "코스피 100");
-  const gold = goldRows.find((row) => row.ISU_NM === "금 1Kg") || goldRows[0];
   const unavailable = (source, message = "데이터 없음") => ({ value: message, asOf: "-", source, unit: "" });
-  return { updatedAt: new Date().toISOString(), metrics: { kospi100: kospi ? metric(kospi.CLSPRC_IDX, kospi.BAS_DD, "KRX", "pt") : unavailable("KRX"), sp500: sp500 || unavailable("FRED", "연결 오류"), gold: gold ? metric(gold.TDD_CLSPRC, gold.BAS_DD, "KRX", "원/g") : unavailable("KRX"), treasury10: treasury10 || unavailable("FRED", "연결 오류"), treasury30: treasury30 || unavailable("FRED", "연결 오류") } };
+  return { updatedAt: new Date().toISOString(), metrics: { kospi100: unavailable("KRX"), sp500: sp500 || unavailable("FRED", "연결 오류"), gold: unavailable("KRX"), treasury10: treasury10 || unavailable("FRED", "연결 오류"), treasury30: treasury30 || unavailable("FRED", "연결 오류") } };
 }
 
 async function market(request, env, headers) {
   const current = await env.PORTFOLIO_CACHE.get("market:latest");
   if (current) return new Response(current, { headers: marketHeaders(headers) });
   try {
-    const value = JSON.stringify(await freshMarket(env));
+    const fresh = await freshMarket(env);
+    const krx = JSON.parse(await env.PORTFOLIO_CACHE.get("market:krx") || "null");
+    const value = JSON.stringify(krx ? { ...fresh, updatedAt: krx.updatedAt, metrics: { ...fresh.metrics, ...krx.metrics } } : fresh);
     await env.PORTFOLIO_CACHE.put("market:latest", value, { expirationTtl: 3600 });
     await env.PORTFOLIO_CACHE.put("market:last", value);
     return new Response(value, { headers: marketHeaders(headers) });
@@ -140,6 +122,14 @@ export default {
       const snapshot = await request.json().catch(() => null);
       if (!snapshot?.updatedAt || !Array.isArray(snapshot.accounts)) return json({ error: "invalid_snapshot" }, 400, headers);
       await env.PORTFOLIO_CACHE.put("latest", JSON.stringify(snapshot));
+      return json({ ok: true }, 200, headers);
+    }
+    if (request.method === "POST" && pathname === "/v1/market/krx") {
+      if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
+      const snapshot = await request.json().catch(() => null);
+      if (!snapshot?.updatedAt || !snapshot?.metrics?.kospi100 || !snapshot?.metrics?.gold) return json({ error: "invalid_market_snapshot" }, 400, headers);
+      await env.PORTFOLIO_CACHE.put("market:krx", JSON.stringify(snapshot));
+      await env.PORTFOLIO_CACHE.delete("market:latest");
       return json({ ok: true }, 200, headers);
     }
     if (request.method === "GET" && pathname === "/v1/portfolio") {

@@ -41,3 +41,11 @@ globalThis.fetch = async (url) => String(url).includes("api.stlouisfed.org") ? R
 const fredMarket = await worker.fetch(new Request("https://api/v1/market"), { ...env, KRX_API_KEY: "key", FRED_API_KEY: "fred-key" });
 globalThis.fetch = originalFetch;
 assert.equal((await fredMarket.json()).metrics.sp500.value, "123.45");
+
+const krxSnapshot = { updatedAt: "2026-08-21T00:00:00Z", metrics: { kospi100: { value: "1,000", asOf: "2026-08-20", source: "KRX", unit: "pt" }, gold: { value: "100,000", asOf: "2026-08-20", source: "KRX", unit: "원/g" } } };
+assert.equal((await worker.fetch(new Request("https://api/v1/market/krx", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(krxSnapshot) }), env)).status, 200);
+cache.delete("market:latest");
+globalThis.fetch = async () => Response.json({ observations: [{ date: "2026-08-21", value: "123.45" }] });
+const mergedMarket = await worker.fetch(new Request("https://api/v1/market"), { ...env, FRED_API_KEY: "fred-key" });
+globalThis.fetch = originalFetch;
+assert.equal((await mergedMarket.json()).metrics.kospi100.value, "1,000");

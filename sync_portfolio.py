@@ -1,7 +1,7 @@
 # 한국투자증권과 토스증권의 읽기 전용 잔고를 로컬에서 동기화한다.
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlencode
@@ -83,6 +83,23 @@ def kis_account():
     return kis_snapshot(data)
 
 
+def krx_metric(url, name_field, name, value_field, unit):
+    for days_ago in range(1, 8):
+        date = (datetime.now().astimezone().date() - timedelta(days=days_ago)).strftime("%Y%m%d")
+        rows = request_json(f"{url}?{urlencode({'basDd': date})}", headers={"AUTH_KEY": os.environ["KRX_API_KEY"]}).get("OutBlock_1", [])
+        item = next((row for row in rows if row.get(name_field) == name), None)
+        if item:
+            return {"value": item[value_field], "asOf": item["BAS_DD"], "source": "KRX", "unit": unit}
+    raise RuntimeError(f"KRX {name} 데이터를 찾지 못했습니다.")
+
+
+def krx_snapshot():
+    return {"updatedAt": datetime.now(timezone.utc).isoformat(), "metrics": {
+        "kospi100": krx_metric(os.environ["KRX_KOSPI_API_URL"], "IDX_NM", "코스피 100", "CLSPRC_IDX", "pt"),
+        "gold": krx_metric(os.environ["KRX_GOLD_API_URL"], "ISU_NM", "금 99.99_1kg", "TDD_CLSPRC", "원/g"),
+    }}
+
+
 def main():
     load_env()
     accounts = []
@@ -95,6 +112,7 @@ def main():
     snapshot = {"updatedAt": datetime.now(timezone.utc).isoformat(), "accounts": accounts}
     url = os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/snapshot"
     request_json(url, method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=snapshot)
+    request_json(os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/market/krx", method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=krx_snapshot())
 
 
 if __name__ == "__main__":

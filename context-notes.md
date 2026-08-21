@@ -62,3 +62,6 @@
 
 # 2026-08-22 KRX Worker diagnosis
 - The same KRX key returns HTTP 200 with rows from the local machine but HTTP 401 from Cloudflare Worker, even after the Worker secret was synchronized. KRX data must be fetched from the approved local machine and uploaded to the Worker. The configured index service supplies `KRX 100`, not a `코스피 100` row.
+
+# 2026-08-22 KRX local ingestion
+- The user replaced the KOSPI service URL. The new local response includes a `코스피 100` row. `sync_portfolio.py` uploads the two local KRX metrics through an authenticated Worker endpoint; the public market endpoint merges those delayed KRX values with FRED values.

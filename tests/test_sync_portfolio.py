@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from sync_portfolio import holding_item, kis_snapshot, load_env, request_json, toss_credentials
+from sync_portfolio import holding_item, kis_snapshot, krx_metric, load_env, request_json, toss_credentials
 
 
 class TossCredentialsTest(unittest.TestCase):
@@ -55,6 +55,11 @@ class TossCredentialsTest(unittest.TestCase):
         })
         self.assertEqual(account["cash"], "7000")
         self.assertEqual(account["stockValue"], "3000")
+
+    def test_krx_metric_uses_matching_daily_row(self):
+        with patch("sync_portfolio.request_json", return_value={"OutBlock_1": [{"IDX_NM": "코스피 100", "CLSPRC_IDX": "1000", "BAS_DD": "20260820"}]}):
+            with patch.dict(os.environ, {"KRX_API_KEY": "key"}):
+                self.assertEqual(krx_metric("https://krx.example", "IDX_NM", "코스피 100", "CLSPRC_IDX", "pt")["value"], "1000")
 
 
 if __name__ == "__main__":
