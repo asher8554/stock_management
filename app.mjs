@@ -135,7 +135,6 @@ async function loadPrivatePortfolio() {
   status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
   dialog.close();
 }
-document.getElementById("load-private").addEventListener("click", loadPrivatePortfolio);
 render();
 if (callbackToken) loadPrivatePortfolio();
 loadMarket();

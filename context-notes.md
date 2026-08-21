@@ -55,3 +55,4 @@
 
 # 2026-08-22 GitHub callback auto load
 - The existing private portfolio loader is reused after a `github-auth` URL fragment is stored in session storage, so a successful GitHub OAuth return immediately fetches and renders the authenticated snapshot.
+- The manual load button was removed because the OAuth callback now performs the same fetch.

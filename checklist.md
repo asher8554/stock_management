@@ -53,3 +53,4 @@
 
 # GitHub callback auto load
 - [x] Automatically load private holdings after GitHub OAuth callback.
+- [x] Remove the redundant manual portfolio-load button.
