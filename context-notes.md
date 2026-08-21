@@ -25,3 +25,4 @@
 - 공개 GitHub Pages는 GitHub 로그인 뒤 Worker의 `/v1/portfolio` 응답만 표시한다. 계좌·종목 데이터는 공개 정적 파일에 넣지 않는다.
 - 현재 `.env`에는 Worker 수집용 `PORTFOLIO_INGEST_URL`과 `PORTFOLIO_INGEST_TOKEN`이 없어 실제 스냅샷 전송은 보류한다.
 - 관리자 진입 길게 누르기 시간을 5초에서 3초로 줄였다.
+- `python .\sync_portfolio.py` 실행은 토스증권 `/oauth2/token`에서 HTTP 403으로 중단됐다. 공식 명세상 허용 IP 미등록 응답에 해당하므로 WTS Open API 허용 IP 등록이 필요하다.
