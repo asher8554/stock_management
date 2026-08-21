@@ -14,7 +14,7 @@ def load_env(path=Path(".env")):
     for line in path.read_text(encoding="utf-8").splitlines():
         key, separator, value = line.partition("=")
         if separator and key and not key.lstrip().startswith("#"):
-            os.environ.setdefault(key.strip(), value.strip())
+            os.environ[key.strip()] = value.strip()
 
 
 def toss_credentials():

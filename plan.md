@@ -8,3 +8,8 @@
 
 1. 토스증권 Open API 환경 변수명을 기존 동기화 경로에 연결한다. 검증: 표준 라이브러리 테스트.
 2. 비공개 포트폴리오에 계좌·보유 종목을 표시한다. 검증: 행 변환 테스트와 Node 구문 검사.
+# KIS account switch
+
+1. Run KIS sync. Verify: worker ingestion success.
+2. Read private snapshot safely. Verify: KIS item count.
+3. Load private dashboard. Verify: holdings table appears.

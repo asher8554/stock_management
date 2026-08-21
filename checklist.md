@@ -29,3 +29,14 @@
 - [x] Worker 수집 URL·토큰 설정 후 실제 동기화
 - [x] 토스증권 WTS 허용 IP 등록 후 동기화 재시도
 - [x] 관리자 진입 길게 누르기 3초 변경
+# KIS account switch
+- [x] KIS credentials configured locally.
+- [ ] Run KIS portfolio sync and verify snapshot.
+- [ ] Verify private dashboard renders holdings.
+# KIS sync result
+- [x] KIS account fetch completed before worker ingestion.
+- [ ] Align Worker `INGEST_TOKEN` with local `PORTFOLIO_INGEST_TOKEN`.
+# KIS integration complete
+- [x] Store one KIS account with one holding in Worker KV.
+- [x] Verify private dashboard renders the holding.
+- [x] Label the account and KIS provider correctly.

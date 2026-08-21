@@ -31,3 +31,9 @@
 - `.env`의 수집 토큰을 Worker Secret으로 재업로드하고 Worker를 재배포했지만 401이 유지됐다. 외부 요청에서 Authorization 헤더가 누락되는지와 Secret 값 불일치를 구분하는 비밀 비노출 진단이 필요하다.
 - 비밀 비노출 진단 결과 Authorization 헤더는 Worker까지 도달하며 상태는 `mismatch`였다. Worker Secret과 `.env` 값이 확실히 다르므로 사용자가 Dashboard에서 `.env` 값을 그대로 다시 입력해야 한다.
 - Cloudflare Dashboard에서 `INGEST_TOKEN`을 `.env` 값과 다시 맞춘 뒤 `python .\sync_portfolio.py`가 오류 없이 완료됐다. Worker 스냅샷 저장이 성공했다.
+# 2026-08-21 KIS switch
+- User chose own Korea Investment & Securities account. Required KIS variables exist locally; values were not read or logged. Next: run sync and verify safely.
+# 2026-08-21 KIS sync diagnosis
+- `python .\sync_portfolio.py` reached Worker ingestion and received `401 unauthorized` at `/v1/snapshot`. KIS token and balance calls completed first, so the failing boundary is the local ingestion token versus Worker `INGEST_TOKEN`, not the KIS account credentials.
+# 2026-08-21 KIS integration complete
+- Root cause of repeated Worker `401`: stale process environment won over `.env`; `load_env()` now gives `.env` priority. A direct Wrangler pipe also appended a line ending, so the Worker secret was finally uploaded with a direct Node stdin write preserving the complete value. Safe auth probe returned `400 invalid_snapshot`, then real sync succeeded. Remote KV has one KIS account with one holding; private dashboard rendered it. UI labels were updated from the previous child-account wording to the user's own account and Korean Investment & Securities.
