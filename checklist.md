@@ -42,3 +42,9 @@
 - [x] Label the account and KIS provider correctly.
 # KIS account title
 - [x] Rename the private account title to 한국투자증권 계좌.
+# Actual allocation and market metrics
+- [x] Design approved.
+- [x] Design specification written.
+- [ ] User reviews the specification.
+- [ ] Implement KIS actual allocation.
+- [ ] Implement market data cache and UI.

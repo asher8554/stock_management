@@ -13,3 +13,8 @@
 1. Run KIS sync. Verify: worker ingestion success.
 2. Read private snapshot safely. Verify: KIS item count.
 3. Load private dashboard. Verify: holdings table appears.
+# Actual allocation and market metrics
+
+1. Extend the KIS snapshot with cash and stock value. Verify: actual allocation sums to 100.
+2. Add the cached market endpoint. Verify: source-specific timestamps and fallback values.
+3. Render private actual allocation and public metrics. Verify: browser UI shows both.
