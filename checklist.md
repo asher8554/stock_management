@@ -76,4 +76,4 @@
 - [x] Approve the Advanced Chart widget design and local persistence scope.
 - [x] Add the analysis route and shared navigation.
 - [x] Implement local selection and watchlist persistence.
-- [ ] Validate, deploy, and verify the route.
+- [x] Validate, deploy, and verify the route.
