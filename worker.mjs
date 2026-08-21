@@ -59,7 +59,7 @@ async function krxRows(url, key) {
 }
 
 async function fredMetric(id, unit) {
-  const csv = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`).then((response) => response.ok ? response.text() : null);
+  const csv = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`, { headers: { accept: "text/csv", "user-agent": "stock-management/1.0" } }).then((response) => response.ok ? response.text() : null);
   if (!csv) throw new Error("fred_unavailable");
   for (const row of csv.trim().split(/\r?\n/).slice(1).reverse()) {
     const cells = row.split(",");
