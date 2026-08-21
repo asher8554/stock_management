@@ -5,6 +5,9 @@ export const portfolioRows = (snapshot) => snapshot.accounts.flatMap((account) =
   symbol: item.symbol,
   quantity: item.quantity,
   marketValue: item.marketValue,
+  lastPrice: item.lastPrice,
+  averagePurchasePrice: item.averagePurchasePrice,
+  gainRate: Number(item.averagePurchasePrice) > 0 && Number.isFinite(Number(item.lastPrice)) ? Number(((Number(item.lastPrice) / Number(item.averagePurchasePrice) - 1) * 100).toFixed(2)) : null,
   currency: item.currency,
 })));
 

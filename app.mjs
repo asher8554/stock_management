@@ -37,6 +37,7 @@ mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.sho
 ["pointerup", "pointerleave", "pointercancel"].forEach((event) => mark.addEventListener(event, () => clearTimeout(timer)));
 document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
+const moneyOrDash = (value, currency) => Number.isFinite(Number(value)) ? money(value, currency) : "-";
 function renderMarket(payload) {
   Object.entries(payload.metrics).forEach(([name, value]) => {
     const card = document.querySelector(`[data-metric="${name}"]`);
@@ -73,10 +74,10 @@ function renderHoldings(snapshot) {
   const title = document.createElement("h3");
   title.textContent = "한국투자증권 계좌";
   const table = document.createElement("table");
-  table.innerHTML = "<thead><tr><th>증권사</th><th>종목</th><th>수량</th><th>평가액</th></tr></thead>";
+  table.innerHTML = "<thead><tr><th>증권사</th><th>종목</th><th>수량</th><th>현재가</th><th>평균매수가</th><th>수익률</th><th>평가액</th></tr></thead>";
   const body = document.createElement("tbody");
   rows.forEach((row) => {
-    const cells = [row.provider, `${row.name} (${row.symbol})`, row.quantity, money(row.marketValue, row.currency)];
+    const cells = [row.provider, `${row.name} (${row.symbol})`, row.quantity, moneyOrDash(row.lastPrice, row.currency), moneyOrDash(row.averagePurchasePrice, row.currency), row.gainRate === null ? "-" : `${row.gainRate > 0 ? "+" : ""}${row.gainRate}%`, money(row.marketValue, row.currency)];
     const tr = document.createElement("tr");
     cells.forEach((value) => { const cell = document.createElement("td"); cell.textContent = value; tr.append(cell); });
     body.append(tr);
