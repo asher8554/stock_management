@@ -3,8 +3,9 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from sync_portfolio import holding_item, load_env, toss_credentials
+from sync_portfolio import holding_item, load_env, request_json, toss_credentials
 
 
 class TossCredentialsTest(unittest.TestCase):
@@ -25,6 +26,12 @@ class TossCredentialsTest(unittest.TestCase):
 
     def test_flattens_holding_market_value(self):
         self.assertEqual(holding_item({"symbol": "005930", "marketValue": {"amount": "72000"}}), {"symbol": "005930", "name": None, "marketCountry": None, "currency": None, "quantity": None, "lastPrice": None, "averagePurchasePrice": None, "marketValue": "72000"})
+
+    def test_sets_user_agent_for_cloudflare_worker_requests(self):
+        with patch("sync_portfolio.urlopen") as urlopen:
+            urlopen.return_value.__enter__.return_value.read.return_value = b"{}"
+            request_json("https://worker.example/v1/snapshot")
+            self.assertEqual(urlopen.call_args.args[0].get_header("User-agent"), "stock-management-sync/1.0")
 
 
 if __name__ == "__main__":

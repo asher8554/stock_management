@@ -26,3 +26,5 @@
 - 현재 `.env`에는 Worker 수집용 `PORTFOLIO_INGEST_URL`과 `PORTFOLIO_INGEST_TOKEN`이 없어 실제 스냅샷 전송은 보류한다.
 - 관리자 진입 길게 누르기 시간을 5초에서 3초로 줄였다.
 - `python .\sync_portfolio.py` 실행은 토스증권 `/oauth2/token`에서 HTTP 403으로 중단됐다. 공식 명세상 허용 IP 미등록 응답에 해당하므로 WTS Open API 허용 IP 등록이 필요하다.
+- 허용 IP 등록 후 토스증권 조회는 통과했다. Worker `/v1/snapshot`은 Python 기본 User-Agent에서 Cloudflare 1010으로 차단됐지만 curl POST는 Worker의 정상 401을 받았다. 수집 요청에 명시적 User-Agent가 필요하다.
+- 명시적 User-Agent 적용 후 Worker는 정상 도달했으나 `/v1/snapshot`이 401 `unauthorized`를 반환했다. Worker `INGEST_TOKEN`과 로컬 `PORTFOLIO_INGEST_TOKEN` 값이 일치하지 않는다.

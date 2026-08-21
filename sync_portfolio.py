@@ -30,7 +30,7 @@ def holding_item(item):
 
 def request_json(url, method="GET", headers=None, form=None, json_body=None):
     data = json.dumps(json_body).encode() if json_body is not None else urlencode(form).encode() if form else None
-    request = Request(url, data=data, headers=headers or {}, method=method)
+    request = Request(url, data=data, headers={"User-Agent": "stock-management-sync/1.0", **(headers or {})}, method=method)
     try:
         with urlopen(request, timeout=20) as response:
             return json.loads(response.read())
