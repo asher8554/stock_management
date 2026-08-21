@@ -52,3 +52,6 @@
 - `/v1/market` is public and cached in KV. FRED daily S&P 500 and US Treasury values are live. The configured KRX key currently returns HTTP 401 for both daily endpoints, so KOSPI 100 and gold render `인증 필요` instead of stale or invented values.
 # 2026-08-22 actual allocation correction
 - `tot_evlu_amt` is total account value, not stock-only value. Actual allocation must use `dnca_tot_amt` for cash and `scts_evlu_amt` for securities value. The private UI renders the corrected values below holdings as a cash/stock donut.
+
+# 2026-08-22 GitHub callback auto load
+- The existing private portfolio loader is reused after a `github-auth` URL fragment is stored in session storage, so a successful GitHub OAuth return immediately fetches and renders the authenticated snapshot.

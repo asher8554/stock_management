@@ -18,3 +18,7 @@
 1. Extend the KIS snapshot with cash and stock value. Verify: actual allocation sums to 100.
 2. Add the cached market endpoint. Verify: source-specific timestamps and fallback values.
 3. Render private actual allocation and public metrics. Verify: browser UI shows both.
+
+# GitHub callback auto load
+
+1. Reuse private portfolio loader after GitHub OAuth callback. Verify: callback token triggers authenticated portfolio request.

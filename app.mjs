@@ -119,7 +119,7 @@ function renderHoldings(snapshot) {
   holdings.append(title, table);
   holdings.hidden = false;
 }
-document.getElementById("load-private").addEventListener("click", async () => {
+async function loadPrivatePortfolio() {
   const status = document.getElementById("private-status");
   document.getElementById("private-summary").hidden = false;
   status.textContent = "보유 정보를 불러오는 중입니다.";
@@ -134,7 +134,9 @@ document.getElementById("load-private").addEventListener("click", async () => {
   renderHoldings(snapshot);
   status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
   dialog.close();
-});
+}
+document.getElementById("load-private").addEventListener("click", loadPrivatePortfolio);
 render();
+if (callbackToken) loadPrivatePortfolio();
 loadMarket();
 setInterval(loadMarket, 60_000);
