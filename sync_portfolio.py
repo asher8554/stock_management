@@ -2,9 +2,30 @@
 import json
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+
+def load_env(path=Path(".env")):
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        key, separator, value = line.partition("=")
+        if separator and key and not key.lstrip().startswith("#"):
+            os.environ.setdefault(key.strip(), value.strip())
+
+
+def toss_credentials():
+    return (
+        os.environ.get("TOSS_CLIENT_ID") or os.environ["TOSS_CLIENT_KEY"],
+        os.environ.get("TOSS_CLIENT_SECRET") or os.environ["TOSS_SECRET_KEY"],
+    )
+
+
+def holding_item(item):
+    return {key: item.get(key) for key in ("symbol", "name", "marketCountry", "currency", "quantity", "lastPrice", "averagePurchasePrice")} | {"marketValue": item.get("marketValue", {}).get("amount")}
 
 
 def request_json(url, method="GET", headers=None, form=None, json_body=None):
@@ -19,10 +40,11 @@ def request_json(url, method="GET", headers=None, form=None, json_body=None):
 
 
 def toss_account():
+    client_id, client_secret = toss_credentials()
     token = request_json("https://openapi.tossinvest.com/oauth2/token", method="POST", form={
         "grant_type": "client_credentials",
-        "client_id": os.environ["TOSS_CLIENT_ID"],
-        "client_secret": os.environ["TOSS_CLIENT_SECRET"],
+        "client_id": client_id,
+        "client_secret": client_secret,
     })["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     accounts = request_json("https://openapi.tossinvest.com/api/v1/accounts", headers=headers)["result"]
@@ -34,7 +56,7 @@ def toss_account():
     })["result"]
     return {
         "provider": "toss",
-        "items": [{key: item.get(key) for key in ("symbol", "name", "marketCountry", "currency", "quantity", "lastPrice", "averagePurchasePrice", "marketValue")} for item in holdings["items"]],
+        "items": [holding_item(item) for item in holdings["items"]],
         "marketValue": holdings["marketValue"],
     }
 
@@ -57,8 +79,9 @@ def kis_account():
 
 
 def main():
+    load_env()
     accounts = []
-    if os.environ.get("TOSS_CLIENT_ID"):
+    if os.environ.get("TOSS_CLIENT_ID") or os.environ.get("TOSS_CLIENT_KEY"):
         accounts.append(toss_account())
     if os.environ.get("KIS_APP_KEY"):
         accounts.append(kis_account())

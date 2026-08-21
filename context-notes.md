@@ -19,3 +19,8 @@
 - 2026-08-21: KV namespace `PORTFOLIO_CACHE`와 Worker `stock-management-private-api`를 배포했다. `/health`는 200, Access 없는 `/v1/portfolio`는 403이다. Worker는 아직 Access 정책과 `INGEST_TOKEN`이 없으므로 스냅샷을 수집하지 않는다.
 - 2026-08-21: 공개 파일·Worker 변수에서 개인 이메일을 제거하고 다크 테마를 적용했다. `ALLOWED_EMAIL` Secret이 없거나 Access 인증이 없으면 `/v1/portfolio`가 403인지 배포 환경에서 확인했다. 기존 공개 Git 커밋에는 이메일이 남아 있어 이력 재작성은 사용자 확인이 필요하다.
 - 2026-08-21: 사용자 스크린샷에서 native dialog의 기본 전경색이 검정으로 렌더링된 것을 확인했다. 다크 모달에 명시적 전경색, 배경색, 고대비 버튼, 버튼 묶음을 적용한다.
+## 2026-08-21 우준우 계좌 현황
+
+- 토스증권 Open API는 `client_id`와 `client_secret`으로 토큰을 발급하고, 잔고 조회에는 `X-Tossinvest-Account`가 필요하다.
+- 공개 GitHub Pages는 GitHub 로그인 뒤 Worker의 `/v1/portfolio` 응답만 표시한다. 계좌·종목 데이터는 공개 정적 파일에 넣지 않는다.
+- 현재 `.env`에는 Worker 수집용 `PORTFOLIO_INGEST_URL`과 `PORTFOLIO_INGEST_TOKEN`이 없어 실제 스냅샷 전송은 보류한다.
