@@ -31,10 +31,19 @@ if (callbackToken) {
   sessionStorage.setItem(sessionKey, callbackToken);
   history.replaceState(null, "", `${location.pathname}${location.search}`);
 }
-let timer;
 const mark = document.getElementById("mark");
-mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.showModal(), 3000); });
-["pointerup", "pointerleave", "pointercancel"].forEach((event) => mark.addEventListener(event, () => clearTimeout(timer)));
+let clicks = 0;
+let clickReset;
+mark.addEventListener("click", () => {
+  clicks += 1;
+  clearTimeout(clickReset);
+  if (clicks === 5) {
+    clicks = 0;
+    dialog.showModal();
+    return;
+  }
+  clickReset = setTimeout(() => { clicks = 0; }, 3000);
+});
 document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
 const moneyOrDash = (value, currency) => Number.isFinite(Number(value)) ? money(value, currency) : "-";
