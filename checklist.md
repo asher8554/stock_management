@@ -74,6 +74,6 @@
 
 # TradingView analysis page
 - [x] Approve the Advanced Chart widget design and local persistence scope.
-- [ ] Add the analysis route and shared navigation.
-- [ ] Implement local selection and watchlist persistence.
+- [x] Add the analysis route and shared navigation.
+- [x] Implement local selection and watchlist persistence.
 - [ ] Validate, deploy, and verify the route.
