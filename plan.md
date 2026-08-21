@@ -26,3 +26,7 @@
 # FRED API market data
 
 1. Replace Worker graph fetch with authenticated FRED observations API. Verify: all three U.S. metrics return FRED values.
+
+# KRX market data
+
+1. Fetch KRX from the approved local machine and upload a delayed market snapshot. Verify: Worker serves the uploaded KRX values.

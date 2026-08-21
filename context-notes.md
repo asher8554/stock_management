@@ -59,3 +59,6 @@
 
 # 2026-08-22 FRED API
 - FRED graph CSV returned HTTP 520 to Cloudflare Worker egress. The Worker now calls the authenticated FRED observations API, which returns recent observations in JSON.
+
+# 2026-08-22 KRX Worker diagnosis
+- The same KRX key returns HTTP 200 with rows from the local machine but HTTP 401 from Cloudflare Worker, even after the Worker secret was synchronized. KRX data must be fetched from the approved local machine and uploaded to the Worker. The configured index service supplies `KRX 100`, not a `코스피 100` row.
