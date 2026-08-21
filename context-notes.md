@@ -74,3 +74,6 @@
 
 # 2026-08-22 glass consistency
 - Both routes now request the same refreshed shared stylesheet revision. Target-allocation labels use `white-space: nowrap` so `방어자산 0%` stays on one line.
+
+# 2026-08-22 header icon and allocation labels
+- The supplied lower-left portfolio-card image was isolated into `assets/portfolio-mark.png` and used by both header marks. Target-bar segments now center their percentage labels regardless of allocation class.

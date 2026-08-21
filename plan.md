@@ -42,3 +42,7 @@
 # Glass consistency
 
 1. Keep the shared glass stylesheet current across both routes and prevent target labels wrapping. Verify: both documents request the same stylesheet revision and the defense label has no-wrap styling.
+
+# Header icon and allocation labels
+
+1. Replace both header marks with the supplied portfolio image and center all target-bar labels. Verify: shared image asset is used by both headers and each target segment centers its percentage.

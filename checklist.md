@@ -67,3 +67,7 @@
 # Glass consistency
 - [x] Use the same refreshed glass stylesheet on both pages.
 - [x] Keep target allocation labels on one line.
+
+# Header icon and allocation labels
+- [x] Use the supplied portfolio image for both header icons.
+- [x] Center all target-allocation percentage labels.
