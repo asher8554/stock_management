@@ -1,5 +1,4 @@
 // 목표 자산배분 화면과 개인 연결 안내를 제어한다.
-import { rebalance } from "./allocation.mjs";
 import { actualAllocation, portfolioRows } from "./portfolio.mjs";
 
 const names = ["cash", "stock", "defense"];
@@ -8,20 +7,12 @@ let allocation = names.reduce((result, name) => ({ ...result, [name]: Number(sav
 
 function render() {
   names.forEach((name) => {
-    document.getElementById(name).value = allocation[name];
-    document.getElementById(`${name}-number`).value = allocation[name];
-    document.getElementById(`${name}-output`).value = `${allocation[name]}%`;
+    document.getElementById(`${name}-output`).textContent = `${allocation[name]}%`;
     document.getElementById(`${name}-bar`).style.width = `${allocation[name]}%`;
+    document.getElementById(`${name}-bar-label`).textContent = `${allocation[name]}%`;
   });
-  document.getElementById("ring").style.setProperty("--cash-p", `${allocation.cash}%`);
-  document.getElementById("ring").style.setProperty("--stock-p", `${allocation.stock}%`);
-  localStorage.setItem("allocation", JSON.stringify(allocation));
+  document.getElementById("target-bar").setAttribute("aria-label", `현금 ${allocation.cash}%, 주식 ${allocation.stock}%, 방어자산 ${allocation.defense}%`);
 }
-
-names.forEach((name) => [name, `${name}-number`].forEach((id) => document.getElementById(id).addEventListener("input", (event) => {
-  allocation = rebalance(allocation, name, event.target.value);
-  render();
-})));
 
 const dialog = document.getElementById("private-dialog");
 const apiBase = "https://stock-management-private-api.household-account-asher.workers.dev";

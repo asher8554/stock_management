@@ -56,3 +56,7 @@
 # GitHub callback auto load
 - [x] Automatically load private holdings after GitHub OAuth callback.
 - [x] Remove the redundant manual portfolio-load button.
+
+# Settings page
+- [x] Add a dedicated target-allocation and guardrail settings page.
+- [x] Replace main-page controls with a read-only horizontal allocation bar.

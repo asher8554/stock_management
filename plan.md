@@ -30,3 +30,7 @@
 # KRX market data
 
 1. Fetch KRX from the approved local machine and upload a delayed market snapshot. Verify: Worker serves the uploaded KRX values.
+
+# Settings page
+
+1. Move allocation and guardrail controls to a dedicated page. Verify: settings persist locally and main page renders a read-only target bar.

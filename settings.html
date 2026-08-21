@@ -1,0 +1,35 @@
+<!-- 목표 비중과 분산 경고 기준을 설정하는 페이지입니다. -->
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>포트폴리오 설정</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <a id="mark" href="index.html" aria-label="포트폴리오 메인으로">◐</a>
+    <div><p class="eyebrow">PORTFOLIO / SETTINGS</p><h1>투자 설정</h1></div>
+    <a class="settings-link" href="index.html">메인으로</a>
+  </header>
+  <main class="settings-main">
+    <section class="allocation" aria-labelledby="allocation-title">
+      <div><p class="eyebrow">ALLOCATION PLAN</p><h2 id="allocation-title">목표 비중</h2><p class="hint">항목을 변경하면 나머지 비중이 자동 조정됩니다.</p></div>
+      <form id="allocation-form">
+        <div class="bar" aria-label="합계 100% 목표 비중"><i id="cash-bar"></i><i id="stock-bar"></i><i id="defense-bar"></i></div>
+        <label>현금 <output id="cash-output"></output><input id="cash" type="range" min="0" max="100" step="1"><input id="cash-number" type="number" min="0" max="100" step="1" aria-label="현금 목표 비중"></label>
+        <label>주식 <output id="stock-output"></output><input id="stock" type="range" min="0" max="100" step="1"><input id="stock-number" type="number" min="0" max="100" step="1" aria-label="주식 목표 비중"></label>
+        <label>방어자산 <output id="defense-output"></output><input id="defense" type="range" min="0" max="100" step="1"><input id="defense-number" type="number" min="0" max="100" step="1" aria-label="방어자산 목표 비중"></label>
+      </form>
+    </section>
+    <section class="limits" aria-labelledby="limits-title">
+      <div><p class="eyebrow">GUARDRAILS</p><h2 id="limits-title">분산 경고 기준</h2></div>
+      <label>단일 종목 최대 비중 <input id="stock-limit" type="number" min="1" max="100" value="20" step="1">%</label>
+      <label>자산군 최대 비중 <input id="asset-limit" type="number" min="1" max="100" value="60" step="1">%</label>
+      <label>목표 대비 허용 편차 <input id="drift-limit" type="number" min="1" max="100" value="5" step="1">%p</label>
+    </section>
+  </main>
+  <script type="module" src="settings.mjs?v=20260822-1"></script>
+</body>
+</html>

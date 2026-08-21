@@ -65,3 +65,6 @@
 
 # 2026-08-22 KRX local ingestion
 - The user replaced the KOSPI service URL. The new local response includes a `코스피 100` row. `sync_portfolio.py` uploads the two local KRX metrics through an authenticated Worker endpoint; the public market endpoint merges those delayed KRX values with FRED values.
+
+# 2026-08-22 settings page
+- Goal allocation and guardrail inputs moved to `settings.html`. Both use browser local storage; the main page now reads the allocation and shows only a horizontal summary bar.
