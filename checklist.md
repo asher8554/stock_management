@@ -40,3 +40,5 @@
 - [x] Store one KIS account with one holding in Worker KV.
 - [x] Verify private dashboard renders the holding.
 - [x] Label the account and KIS provider correctly.
+# KIS account title
+- [x] Rename the private account title to 한국투자증권 계좌.

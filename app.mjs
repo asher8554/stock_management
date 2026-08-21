@@ -47,7 +47,7 @@ function renderHoldings(snapshot) {
     return;
   }
   const title = document.createElement("h3");
-  title.textContent = "내 계좌";
+  title.textContent = "한국투자증권 계좌";
   const table = document.createElement("table");
   table.innerHTML = "<thead><tr><th>증권사</th><th>종목</th><th>수량</th><th>평가액</th></tr></thead>";
   const body = document.createElement("tbody");

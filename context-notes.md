@@ -37,3 +37,5 @@
 - `python .\sync_portfolio.py` reached Worker ingestion and received `401 unauthorized` at `/v1/snapshot`. KIS token and balance calls completed first, so the failing boundary is the local ingestion token versus Worker `INGEST_TOKEN`, not the KIS account credentials.
 # 2026-08-21 KIS integration complete
 - Root cause of repeated Worker `401`: stale process environment won over `.env`; `load_env()` now gives `.env` priority. A direct Wrangler pipe also appended a line ending, so the Worker secret was finally uploaded with a direct Node stdin write preserving the complete value. Safe auth probe returned `400 invalid_snapshot`, then real sync succeeded. Remote KV has one KIS account with one holding; private dashboard rendered it. UI labels were updated from the previous child-account wording to the user's own account and Korean Investment & Securities.
+# 2026-08-21 KIS account title
+- User clarified that the private account heading must be 한국투자증권 계좌, not a child's name or a generic personal-account label.
