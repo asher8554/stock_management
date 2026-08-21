@@ -13,7 +13,10 @@ const env = {
 };
 const snapshot = { updatedAt: "2026-08-21T00:00:00Z", accounts: [] };
 
-assert.equal((await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", body: JSON.stringify(snapshot) }), env)).status, 401);
+const missingCredential = await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", body: JSON.stringify(snapshot) }), env);
+assert.deepEqual(await missingCredential.json(), { error: "unauthorized" });
+const mismatchedCredential = await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", headers: { authorization: "Bearer wrong" }, body: JSON.stringify(snapshot) }), env);
+assert.deepEqual(await mismatchedCredential.json(), { error: "unauthorized" });
 assert.equal((await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(snapshot) }), env)).status, 200);
 assert.equal((await worker.fetch(new Request("https://api/v1/portfolio"), env)).status, 403);
 

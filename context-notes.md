@@ -28,3 +28,5 @@
 - `python .\sync_portfolio.py` 실행은 토스증권 `/oauth2/token`에서 HTTP 403으로 중단됐다. 공식 명세상 허용 IP 미등록 응답에 해당하므로 WTS Open API 허용 IP 등록이 필요하다.
 - 허용 IP 등록 후 토스증권 조회는 통과했다. Worker `/v1/snapshot`은 Python 기본 User-Agent에서 Cloudflare 1010으로 차단됐지만 curl POST는 Worker의 정상 401을 받았다. 수집 요청에 명시적 User-Agent가 필요하다.
 - 명시적 User-Agent 적용 후 Worker는 정상 도달했으나 `/v1/snapshot`이 401 `unauthorized`를 반환했다. Worker `INGEST_TOKEN`과 로컬 `PORTFOLIO_INGEST_TOKEN` 값이 일치하지 않는다.
+- `.env`의 수집 토큰을 Worker Secret으로 재업로드하고 Worker를 재배포했지만 401이 유지됐다. 외부 요청에서 Authorization 헤더가 누락되는지와 Secret 값 불일치를 구분하는 비밀 비노출 진단이 필요하다.
+- 비밀 비노출 진단 결과 Authorization 헤더는 Worker까지 도달하며 상태는 `mismatch`였다. Worker Secret과 `.env` 값이 확실히 다르므로 사용자가 Dashboard에서 `.env` 값을 그대로 다시 입력해야 한다.
