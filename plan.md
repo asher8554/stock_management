@@ -38,3 +38,7 @@
 # Glass redesign
 
 1. Apply a Pretendard glassmorphism visual system to the main and settings pages. Verify: shared styles load on both routes.
+
+# Glass consistency
+
+1. Keep the shared glass stylesheet current across both routes and prevent target labels wrapping. Verify: both documents request the same stylesheet revision and the defense label has no-wrap styling.

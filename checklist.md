@@ -63,3 +63,7 @@
 
 # Glass redesign
 - [x] Apply Pretendard and a glassmorphism visual system to both pages.
+
+# Glass consistency
+- [x] Use the same refreshed glass stylesheet on both pages.
+- [x] Keep target allocation labels on one line.
