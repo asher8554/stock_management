@@ -22,3 +22,7 @@
 # GitHub callback auto load
 
 1. Reuse private portfolio loader after GitHub OAuth callback. Verify: callback token triggers authenticated portfolio request.
+
+# FRED API market data
+
+1. Replace Worker graph fetch with authenticated FRED observations API. Verify: all three U.S. metrics return FRED values.

@@ -35,3 +35,9 @@ cache.set("market:latest", JSON.stringify({ updatedAt: "2026-08-21T00:00:00Z", m
 const market = await worker.fetch(new Request("https://api/v1/market"), { ...env, KRX_API_KEY: "key" });
 assert.equal(market.status, 200);
 assert.equal((await market.json()).metrics.kospi100.value, "1,000");
+
+cache.clear();
+globalThis.fetch = async (url) => String(url).includes("api.stlouisfed.org") ? Response.json({ observations: [{ date: "2026-08-21", value: "123.45" }] }) : Response.json({ OutBlock_1: [] });
+const fredMarket = await worker.fetch(new Request("https://api/v1/market"), { ...env, KRX_API_KEY: "key", FRED_API_KEY: "fred-key" });
+globalThis.fetch = originalFetch;
+assert.equal((await fredMarket.json()).metrics.sp500.value, "123.45");

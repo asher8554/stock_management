@@ -50,6 +50,7 @@
 - [x] Implement KIS actual allocation.
 - [x] Implement market data cache and UI.
 - [ ] Resolve KRX API authentication response for KOSPI 100 and gold.
+- [x] Configure authenticated FRED observations API for U.S. metrics.
 
 # GitHub callback auto load
 - [x] Automatically load private holdings after GitHub OAuth callback.

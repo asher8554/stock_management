@@ -58,19 +58,20 @@ async function krxRows(url, key) {
   return [];
 }
 
-async function fredMetric(id, unit) {
-  const csv = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`, { headers: { accept: "text/csv", "user-agent": "stock-management/1.0" } }).then((response) => response.ok ? response.text() : null);
-  if (!csv) throw new Error("fred_unavailable");
-  for (const row of csv.trim().split(/\r?\n/).slice(1).reverse()) {
-    const cells = row.split(",");
-    if (cells[1] && cells[1] !== ".") return metric(cells[1], cells[0], "FRED", unit);
+async function fredMetric(id, unit, key) {
+  if (!key) throw new Error("fred_not_configured");
+  const query = new URLSearchParams({ series_id: id, api_key: key, file_type: "json", sort_order: "desc", limit: "10" });
+  const body = await fetch(`https://api.stlouisfed.org/fred/series/observations?${query}`).then((response) => response.ok ? response.json() : null);
+  if (!body?.observations) throw new Error("fred_unavailable");
+  for (const observation of body.observations) {
+    if (observation.value !== ".") return metric(observation.value, observation.date, "FRED", unit);
   }
   throw new Error("fred_empty");
 }
 
 async function freshMarket(env) {
   if (!env.KRX_API_KEY) throw new Error("krx_not_configured");
-  const [kospiResult, goldResult, sp500Result, treasury10Result, treasury30Result] = await Promise.allSettled([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetric("SP500", "pt"), fredMetric("DGS10", "%"), fredMetric("DGS30", "%")]);
+  const [kospiResult, goldResult, sp500Result, treasury10Result, treasury30Result] = await Promise.allSettled([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetric("SP500", "pt", env.FRED_API_KEY), fredMetric("DGS10", "%", env.FRED_API_KEY), fredMetric("DGS30", "%", env.FRED_API_KEY)]);
   const value = (result, fallback) => result.status === "fulfilled" ? result.value : fallback;
   const kospiRows = value(kospiResult, []);
   const goldRows = value(goldResult, []);
