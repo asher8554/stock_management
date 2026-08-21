@@ -72,20 +72,18 @@ function renderActualAllocation(snapshot) {
   content.className = "actual-allocation-content";
   const bar = document.createElement("div");
   bar.className = "actual-bar";
-  [["cash", values.cashPercent], ["stock", values.stockPercent]].forEach(([name, percent]) => {
+  bar.setAttribute("role", "img");
+  bar.setAttribute("aria-label", `현금 ${money(values.cash)} ${values.cashPercent}%, 현재 보유주식 ${money(values.stock)} ${values.stockPercent}%`);
+  [["cash", "현금", values.cash, values.cashPercent], ["stock", "현재 보유주식", values.stock, values.stockPercent]].forEach(([name, label, value, percent]) => {
     const segment = document.createElement("i");
     segment.className = name;
     segment.style.width = `${percent}%`;
+    const text = document.createElement("span");
+    text.textContent = `${label} ${money(value)} · ${percent}%`;
+    segment.append(text);
     bar.append(segment);
   });
-  const details = document.createElement("div");
-  details.className = "actual-allocation-details";
-  [["현금", values.cash, values.cashPercent], ["현재 보유주식", values.stock, values.stockPercent]].forEach(([label, value, percent]) => {
-    const item = document.createElement("p");
-    item.textContent = `${label} ${money(value)} · ${percent}%`;
-    details.append(item);
-  });
-  content.append(bar, details);
+  content.append(bar);
   container.append(title, content);
   container.hidden = false;
 }
