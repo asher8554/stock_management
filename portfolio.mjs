@@ -7,3 +7,12 @@ export const portfolioRows = (snapshot) => snapshot.accounts.flatMap((account) =
   marketValue: item.marketValue,
   currency: item.currency,
 })));
+
+export const actualAllocation = (snapshot) => {
+  const totals = snapshot.accounts.reduce((sum, account) => ({
+    cash: sum.cash + Number(account.cash || 0),
+    stock: sum.stock + Number(account.stockValue || account.marketValue || 0),
+  }), { cash: 0, stock: 0 });
+  const total = totals.cash + totals.stock;
+  return { ...totals, defense: 0, cashPercent: total ? Math.round(totals.cash / total * 100) : 0, stockPercent: total ? Math.round(totals.stock / total * 100) : 0, defensePercent: 0 };
+};

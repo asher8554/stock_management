@@ -1,6 +1,6 @@
 // 목표 자산배분 화면과 개인 연결 안내를 제어한다.
 import { rebalance } from "./allocation.mjs";
-import { portfolioRows } from "./portfolio.mjs";
+import { actualAllocation, portfolioRows } from "./portfolio.mjs";
 
 const names = ["cash", "stock", "defense"];
 const saved = JSON.parse(localStorage.getItem("allocation") || "{\"cash\":10,\"stock\":60,\"defense\":30}");
@@ -37,6 +37,17 @@ mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.sho
 ["pointerup", "pointerleave", "pointercancel"].forEach((event) => mark.addEventListener(event, () => clearTimeout(timer)));
 document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
+function renderActualAllocation(snapshot) {
+  const values = actualAllocation(snapshot);
+  const container = document.getElementById("actual-allocation");
+  container.replaceChildren();
+  [["현금", values.cash, values.cashPercent], ["현재 보유주식", values.stock, values.stockPercent]].forEach(([label, value, percent]) => {
+    const item = document.createElement("p");
+    item.textContent = `${label} ${money(value)} · ${percent}%`;
+    container.append(item);
+  });
+  container.hidden = false;
+}
 function renderHoldings(snapshot) {
   const holdings = document.getElementById("portfolio-holdings");
   const rows = portfolioRows(snapshot);
@@ -72,6 +83,7 @@ document.getElementById("load-private").addEventListener("click", async () => {
     return;
   }
   const snapshot = await response.json();
+  renderActualAllocation(snapshot);
   renderHoldings(snapshot);
   status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
   dialog.close();
