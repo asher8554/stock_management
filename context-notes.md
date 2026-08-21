@@ -30,3 +30,4 @@
 - 명시적 User-Agent 적용 후 Worker는 정상 도달했으나 `/v1/snapshot`이 401 `unauthorized`를 반환했다. Worker `INGEST_TOKEN`과 로컬 `PORTFOLIO_INGEST_TOKEN` 값이 일치하지 않는다.
 - `.env`의 수집 토큰을 Worker Secret으로 재업로드하고 Worker를 재배포했지만 401이 유지됐다. 외부 요청에서 Authorization 헤더가 누락되는지와 Secret 값 불일치를 구분하는 비밀 비노출 진단이 필요하다.
 - 비밀 비노출 진단 결과 Authorization 헤더는 Worker까지 도달하며 상태는 `mismatch`였다. Worker Secret과 `.env` 값이 확실히 다르므로 사용자가 Dashboard에서 `.env` 값을 그대로 다시 입력해야 한다.
+- Cloudflare Dashboard에서 `INGEST_TOKEN`을 `.env` 값과 다시 맞춘 뒤 `python .\sync_portfolio.py`가 오류 없이 완료됐다. Worker 스냅샷 저장이 성공했다.
