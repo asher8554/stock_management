@@ -47,5 +47,6 @@
 - [x] Design specification written.
 - [x] User reviews the specification.
 - [x] KRX service authorization verified.
-- [ ] Implement KIS actual allocation.
-- [ ] Implement market data cache and UI.
+- [x] Implement KIS actual allocation.
+- [x] Implement market data cache and UI.
+- [ ] Resolve KRX API authentication response for KOSPI 100 and gold.

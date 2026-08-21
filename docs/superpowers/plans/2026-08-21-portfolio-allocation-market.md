@@ -243,3 +243,9 @@ Load the published page, confirm five market cards show values, then authenticat
 git add checklist.md context-notes.md docs/superpowers/plans/2026-08-21-portfolio-allocation-market.md
 git commit -m "실제 비중 및 시장 지표 작업 기록"
 ```
+
+## Execution Status
+
+- [x] Tasks 1-4 implemented and tested.
+- [x] Worker deployed and KIS snapshot synchronized.
+- [ ] KRX service key returns HTTP 401 and requires account-side correction before KOSPI 100 and gold values can load.

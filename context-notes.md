@@ -47,3 +47,6 @@
 - The configured KRX authentication key has the expected non-secret shape, but KRX returned HTTP 401 for both sample and service URL forms. The service application is not usable yet; check API service utilization approval before implementation.
 # 2026-08-21 KRX authorization verified
 - After service approval, both configured KRX routes returned HTTP 200. Responses were empty because the daily services require request-date fields. The configured KOSPI 100 and gold services are daily data APIs, so the UI must not present them as real-time or intraday delayed data.
+# 2026-08-21 actual allocation and market deployment
+- KIS summary field names were checked without values. `dnca_tot_amt` is cash and `tot_evlu_amt` is stock value. A new KIS sync successfully ingested the extended snapshot.
+- `/v1/market` is public and cached in KV. FRED daily S&P 500 and US Treasury values are live. The configured KRX key currently returns HTTP 401 for both daily endpoints, so KOSPI 100 and gold render `인증 필요` instead of stale or invented values.
