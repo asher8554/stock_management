@@ -37,6 +37,19 @@ mark.addEventListener("pointerdown", () => { timer = setTimeout(() => dialog.sho
 ["pointerup", "pointerleave", "pointercancel"].forEach((event) => mark.addEventListener(event, () => clearTimeout(timer)));
 document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
+function renderMarket(payload) {
+  Object.entries(payload.metrics).forEach(([name, value]) => {
+    const card = document.querySelector(`[data-metric="${name}"]`);
+    if (!card) return;
+    card.querySelector("strong").textContent = `${value.value}${value.unit ? ` ${value.unit}` : ""}`;
+    card.querySelector("small").textContent = `${value.source} · ${value.asOf} 일별`;
+  });
+  document.getElementById("refresh").textContent = `시장 데이터 ${new Date(payload.updatedAt).toLocaleString("ko-KR")} 갱신`;
+}
+async function loadMarket() {
+  const response = await fetch(`${apiBase}/v1/market`).catch(() => null);
+  if (response?.ok) renderMarket(await response.json());
+}
 function renderActualAllocation(snapshot) {
   const values = actualAllocation(snapshot);
   const container = document.getElementById("actual-allocation");
@@ -89,3 +102,5 @@ document.getElementById("load-private").addEventListener("click", async () => {
   dialog.close();
 });
 render();
+loadMarket();
+setInterval(loadMarket, 60_000);
