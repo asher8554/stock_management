@@ -58,29 +58,23 @@ async function krxRows(url, key) {
   return [];
 }
 
-async function fredMetrics() {
-  const csv = await fetch("https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500,DGS10,DGS30").then((response) => response.ok ? response.text() : null);
+async function fredMetric(id, unit) {
+  const csv = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`).then((response) => response.ok ? response.text() : null);
   if (!csv) throw new Error("fred_unavailable");
-  const [header, ...rows] = csv.trim().split(/\r?\n/);
-  const columns = header.split(",");
-  const latest = Object.fromEntries(columns.slice(1).map((name) => [name, null]));
-  for (const row of rows.reverse()) {
+  for (const row of csv.trim().split(/\r?\n/).slice(1).reverse()) {
     const cells = row.split(",");
-    columns.slice(1).forEach((name, index) => {
-      if (!latest[name] && cells[index + 1] && cells[index + 1] !== ".") latest[name] = { value: cells[index + 1], asOf: cells[0] };
-    });
+    if (cells[1] && cells[1] !== ".") return metric(cells[1], cells[0], "FRED", unit);
   }
-  if (Object.values(latest).some((item) => !item)) throw new Error("fred_empty");
-  return { sp500: metric(latest.SP500.value, latest.SP500.asOf, "FRED", "pt"), treasury10: metric(latest.DGS10.value, latest.DGS10.asOf, "FRED", "%"), treasury30: metric(latest.DGS30.value, latest.DGS30.asOf, "FRED", "%") };
+  throw new Error("fred_empty");
 }
 
 async function freshMarket(env) {
   if (!env.KRX_API_KEY) throw new Error("krx_not_configured");
-  const [kospiRows, goldRows, fred] = await Promise.all([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetrics()]);
+  const [kospiRows, goldRows, sp500, treasury10, treasury30] = await Promise.all([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetric("SP500", "pt"), fredMetric("DGS10", "%"), fredMetric("DGS30", "%")]);
   const kospi = kospiRows.find((row) => row.IDX_NM === "코스피 100");
   const gold = goldRows.find((row) => row.ISU_NM === "금 1Kg") || goldRows[0];
-  if (!kospi || !gold) throw new Error("krx_empty");
-  return { updatedAt: new Date().toISOString(), metrics: { kospi100: metric(kospi.CLSPRC_IDX, kospi.BAS_DD, "KRX", "pt"), ...fred, gold: metric(gold.TDD_CLSPRC, gold.BAS_DD, "KRX", "원/g") } };
+  const unavailable = (source) => ({ value: "인증 필요", asOf: "-", source, unit: "" });
+  return { updatedAt: new Date().toISOString(), metrics: { kospi100: kospi ? metric(kospi.CLSPRC_IDX, kospi.BAS_DD, "KRX", "pt") : unavailable("KRX"), sp500, gold: gold ? metric(gold.TDD_CLSPRC, gold.BAS_DD, "KRX", "원/g") : unavailable("KRX"), treasury10, treasury30 } };
 }
 
 async function market(request, env, headers) {
