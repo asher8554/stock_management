@@ -30,3 +30,8 @@ globalThis.fetch = originalFetch;
 assert.equal(callback.status, 302);
 const session = new URL(callback.headers.get("location")).hash.split("=")[1];
 assert.equal((await worker.fetch(new Request("https://api/v1/portfolio", { headers: { authorization: `Bearer ${session}` } }), env)).status, 200);
+
+cache.set("market:latest", JSON.stringify({ updatedAt: "2026-08-21T00:00:00Z", metrics: { kospi100: { value: "1,000" } } }));
+const market = await worker.fetch(new Request("https://api/v1/market"), { ...env, KRX_API_KEY: "key" });
+assert.equal(market.status, 200);
+assert.equal((await market.json()).metrics.kospi100.value, "1,000");

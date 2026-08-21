@@ -7,6 +7,8 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 
 const authorized = (request, token) => request.headers.get("authorization") === `Bearer ${token}`;
 const cors = (request) => request.headers.get("origin") === "https://asher8554.github.io" ? { "access-control-allow-origin": "https://asher8554.github.io", "access-control-allow-headers": "authorization, content-type", "vary": "origin" } : {};
+const KRX_KOSPI_URL = "https://data-dbg.krx.co.kr/svc/sample/apis/idx/kospi_dd_trd";
+const KRX_GOLD_URL = "https://data-dbg.krx.co.kr/svc/sample/apis/gen/gold_bydd_trd";
 const base64Url = (value) => btoa(String.fromCharCode(...new Uint8Array(value))).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 const fromBase64Url = (value) => Uint8Array.from(atob(value.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((value.length + 3) % 4)), (character) => character.charCodeAt(0));
 
@@ -39,6 +41,61 @@ const allowedGitHubLogin = (env) => env.ALLOWED_GITHUB_LOGIN?.trim().toLowerCase
 const githubConfigured = (env) => [env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET, env.GITHUB_SESSION_SECRET, allowedGitHubLogin(env)].every(Boolean);
 const callbackUrl = (request) => new URL("/auth/github/callback", request.url).toString();
 const redirect = (url) => Response.redirect(url, 302);
+const marketHeaders = (headers) => ({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
+const koreaDate = (daysAgo) => {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(Date.now() - daysAgo * 86400000));
+  return Object.fromEntries(parts.map(({ type, value }) => [type, value])).year + Object.fromEntries(parts.map(({ type, value }) => [type, value])).month + Object.fromEntries(parts.map(({ type, value }) => [type, value])).day;
+};
+const number = (value) => Number(String(value).replaceAll(",", ""));
+const metric = (value, asOf, source, unit = "") => ({ value: Number.isFinite(number(value)) ? number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : String(value), asOf, source, unit });
+
+async function krxRows(url, key) {
+  for (let daysAgo = 1; daysAgo <= 7; daysAgo += 1) {
+    const asOf = koreaDate(daysAgo);
+    const body = await fetch(`${url}?basDd=${asOf}`, { headers: { AUTH_KEY: key } }).then((response) => response.ok ? response.json() : null).catch(() => null);
+    if (body?.OutBlock_1?.length) return body.OutBlock_1;
+  }
+  return [];
+}
+
+async function fredMetrics() {
+  const csv = await fetch("https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500,DGS10,DGS30").then((response) => response.ok ? response.text() : null);
+  if (!csv) throw new Error("fred_unavailable");
+  const [header, ...rows] = csv.trim().split(/\r?\n/);
+  const columns = header.split(",");
+  const latest = Object.fromEntries(columns.slice(1).map((name) => [name, null]));
+  for (const row of rows.reverse()) {
+    const cells = row.split(",");
+    columns.slice(1).forEach((name, index) => {
+      if (!latest[name] && cells[index + 1] && cells[index + 1] !== ".") latest[name] = { value: cells[index + 1], asOf: cells[0] };
+    });
+  }
+  if (Object.values(latest).some((item) => !item)) throw new Error("fred_empty");
+  return { sp500: metric(latest.SP500.value, latest.SP500.asOf, "FRED", "pt"), treasury10: metric(latest.DGS10.value, latest.DGS10.asOf, "FRED", "%"), treasury30: metric(latest.DGS30.value, latest.DGS30.asOf, "FRED", "%") };
+}
+
+async function freshMarket(env) {
+  if (!env.KRX_API_KEY) throw new Error("krx_not_configured");
+  const [kospiRows, goldRows, fred] = await Promise.all([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetrics()]);
+  const kospi = kospiRows.find((row) => row.IDX_NM === "코스피 100");
+  const gold = goldRows.find((row) => row.ISU_NM === "금 1Kg") || goldRows[0];
+  if (!kospi || !gold) throw new Error("krx_empty");
+  return { updatedAt: new Date().toISOString(), metrics: { kospi100: metric(kospi.CLSPRC_IDX, kospi.BAS_DD, "KRX", "pt"), ...fred, gold: metric(gold.TDD_CLSPRC, gold.BAS_DD, "KRX", "원/g") } };
+}
+
+async function market(request, env, headers) {
+  const current = await env.PORTFOLIO_CACHE.get("market:latest");
+  if (current) return new Response(current, { headers: marketHeaders(headers) });
+  try {
+    const value = JSON.stringify(await freshMarket(env));
+    await env.PORTFOLIO_CACHE.put("market:latest", value, { expirationTtl: 3600 });
+    await env.PORTFOLIO_CACHE.put("market:last", value);
+    return new Response(value, { headers: marketHeaders(headers) });
+  } catch {
+    const previous = await env.PORTFOLIO_CACHE.get("market:last");
+    return previous ? new Response(previous, { headers: marketHeaders(headers) }) : json({ error: "market_unavailable" }, 503, headers);
+  }
+}
 
 async function startGitHubLogin(request, env) {
   if (!githubConfigured(env)) return json({ error: "github_auth_not_configured" }, 503);
@@ -74,6 +131,7 @@ export default {
     const headers = cors(request);
     if (request.method === "OPTIONS") return new Response(null, { headers });
     if (request.method === "GET" && pathname === "/health") return json({ ok: true }, 200, headers);
+    if (request.method === "GET" && pathname === "/v1/market") return market(request, env, headers);
     if (request.method === "GET" && pathname === "/auth/github") return startGitHubLogin(request, env);
     if (request.method === "GET" && pathname === "/auth/github/callback") return completeGitHubLogin(request, env);
     if (request.method === "POST" && pathname === "/v1/snapshot") {
