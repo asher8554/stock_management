@@ -68,3 +68,6 @@
 
 # 2026-08-22 settings page
 - Goal allocation and guardrail inputs moved to `settings.html`. Both use browser local storage; the main page now reads the allocation and shows only a horizontal summary bar.
+
+# 2026-08-22 glass redesign
+- The dashboard now uses Pretendard and a shared dark glass surface system. Market cards, target allocation, portfolio details, settings inputs, and the dialog retain their existing semantics while adopting the new visual language.

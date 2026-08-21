@@ -60,3 +60,6 @@
 # Settings page
 - [x] Add a dedicated target-allocation and guardrail settings page.
 - [x] Replace main-page controls with a read-only horizontal allocation bar.
+
+# Glass redesign
+- [x] Apply Pretendard and a glassmorphism visual system to both pages.

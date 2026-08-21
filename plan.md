@@ -34,3 +34,7 @@
 # Settings page
 
 1. Move allocation and guardrail controls to a dedicated page. Verify: settings persist locally and main page renders a read-only target bar.
+
+# Glass redesign
+
+1. Apply a Pretendard glassmorphism visual system to the main and settings pages. Verify: shared styles load on both routes.
