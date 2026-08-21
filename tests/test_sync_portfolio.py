@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from sync_portfolio import holding_item, load_env, request_json, toss_credentials
+from sync_portfolio import holding_item, kis_snapshot, load_env, request_json, toss_credentials
 
 
 class TossCredentialsTest(unittest.TestCase):
@@ -47,6 +47,14 @@ class TossCredentialsTest(unittest.TestCase):
             urlopen.return_value.__enter__.return_value.read.return_value = b"{}"
             request_json("https://worker.example/v1/snapshot")
             self.assertEqual(urlopen.call_args.args[0].get_header("User-agent"), "stock-management-sync/1.0")
+
+    def test_kis_snapshot_includes_cash_and_stock_value(self):
+        account = kis_snapshot({
+            "output1": [{"hldg_qty": "2", "evlu_amt": "3000"}],
+            "output2": [{"dnca_tot_amt": "7000", "tot_evlu_amt": "3000"}],
+        })
+        self.assertEqual(account["cash"], "7000")
+        self.assertEqual(account["stockValue"], "3000")
 
 
 if __name__ == "__main__":

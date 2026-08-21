@@ -61,6 +61,13 @@ def toss_account():
     }
 
 
+def kis_snapshot(data):
+    summary = data["output2"][0]
+    return {"provider": "kis", "items": [{
+        "symbol": item.get("pdno"), "name": item.get("prdt_name"), "currency": "KRW", "quantity": item.get("hldg_qty"), "lastPrice": item.get("prpr"), "averagePurchasePrice": item.get("pchs_avg_pric"), "marketValue": item.get("evlu_amt"),
+    } for item in data["output1"] if item.get("hldg_qty") != "0"], "marketValue": summary.get("tot_evlu_amt"), "cash": summary.get("dnca_tot_amt"), "stockValue": summary.get("tot_evlu_amt")}
+
+
 def kis_account():
     token = request_json("https://openapi.koreainvestment.com:9443/oauth2/tokenP", method="POST", headers={
         "content-type": "application/json",
@@ -73,9 +80,7 @@ def kis_account():
     })
     if data.get("rt_cd") != "0":
         raise RuntimeError(data.get("msg1", "한국투자증권 잔고 조회 실패"))
-    return {"provider": "kis", "items": [{
-        "symbol": item.get("pdno"), "name": item.get("prdt_name"), "currency": "KRW", "quantity": item.get("hldg_qty"), "lastPrice": item.get("prpr"), "averagePurchasePrice": item.get("pchs_avg_pric"), "marketValue": item.get("evlu_amt"),
-    } for item in data["output1"] if item.get("hldg_qty") != "0"], "marketValue": data["output2"][0].get("tot_evlu_amt")}
+    return kis_snapshot(data)
 
 
 def main():
