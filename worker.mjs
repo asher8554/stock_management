@@ -70,11 +70,17 @@ async function fredMetric(id, unit) {
 
 async function freshMarket(env) {
   if (!env.KRX_API_KEY) throw new Error("krx_not_configured");
-  const [kospiRows, goldRows, sp500, treasury10, treasury30] = await Promise.all([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetric("SP500", "pt"), fredMetric("DGS10", "%"), fredMetric("DGS30", "%")]);
+  const [kospiResult, goldResult, sp500Result, treasury10Result, treasury30Result] = await Promise.allSettled([krxRows(KRX_KOSPI_URL, env.KRX_API_KEY), krxRows(KRX_GOLD_URL, env.KRX_API_KEY), fredMetric("SP500", "pt"), fredMetric("DGS10", "%"), fredMetric("DGS30", "%")]);
+  const value = (result, fallback) => result.status === "fulfilled" ? result.value : fallback;
+  const kospiRows = value(kospiResult, []);
+  const goldRows = value(goldResult, []);
+  const sp500 = value(sp500Result, null);
+  const treasury10 = value(treasury10Result, null);
+  const treasury30 = value(treasury30Result, null);
   const kospi = kospiRows.find((row) => row.IDX_NM === "코스피 100");
   const gold = goldRows.find((row) => row.ISU_NM === "금 1Kg") || goldRows[0];
-  const unavailable = (source) => ({ value: "인증 필요", asOf: "-", source, unit: "" });
-  return { updatedAt: new Date().toISOString(), metrics: { kospi100: kospi ? metric(kospi.CLSPRC_IDX, kospi.BAS_DD, "KRX", "pt") : unavailable("KRX"), sp500, gold: gold ? metric(gold.TDD_CLSPRC, gold.BAS_DD, "KRX", "원/g") : unavailable("KRX"), treasury10, treasury30 } };
+  const unavailable = (source, message = "데이터 없음") => ({ value: message, asOf: "-", source, unit: "" });
+  return { updatedAt: new Date().toISOString(), metrics: { kospi100: kospi ? metric(kospi.CLSPRC_IDX, kospi.BAS_DD, "KRX", "pt") : unavailable("KRX"), sp500: sp500 || unavailable("FRED", "연결 오류"), gold: gold ? metric(gold.TDD_CLSPRC, gold.BAS_DD, "KRX", "원/g") : unavailable("KRX"), treasury10: treasury10 || unavailable("FRED", "연결 오류"), treasury30: treasury30 || unavailable("FRED", "연결 오류") } };
 }
 
 async function market(request, env, headers) {
