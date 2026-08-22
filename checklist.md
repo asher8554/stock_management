@@ -91,3 +91,4 @@
 - [x] Render average purchase price, current price, 20/60-day moving averages, volume, and RSI(14).
 - [x] Run the KIS sync and validate the deployed analysis route.
 - [x] Show actionable private-data and rendering failures instead of a generic chart error.
+- [x] Add range selectors and a 120-day moving average to holding analysis.
