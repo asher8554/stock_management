@@ -193,4 +193,4 @@
 
 # Portfolio summary header placement
 - [x] Move five desktop cards to the empty header space.
-- [ ] Test, deploy, and verify static bundle.
+- [x] Test, deploy, and verify static bundle.
