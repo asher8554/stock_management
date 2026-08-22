@@ -163,3 +163,6 @@
 
 # 2026-08-22 analysis entry
 - Five header-mark clicks now navigate to analysis first. An existing session opens the private account immediately; without one, `analysis.html?login=1` starts the existing GitHub OAuth flow automatically.
+
+# 2026-08-22 hover crosshair
+- The scrollable SVG chart uses one pointer-events-free dotted path that snaps to the nearest candle and hides when the pointer leaves the chart.

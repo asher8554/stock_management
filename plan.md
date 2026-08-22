@@ -108,3 +108,7 @@
 
 1. Read completed KIS buy executions into the private portfolio snapshot. Verify: each active holding receives dated purchase events.
 2. Draw those events on the native chart. Verify: daily and aggregated charts place markers at the matching purchase period.
+
+# Hover crosshair
+
+1. Draw a dotted vertical line at the hovered candle. Verify: it follows the pointer across the chart and hides on exit.

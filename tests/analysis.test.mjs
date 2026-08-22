@@ -1,7 +1,7 @@
 // 보유종목 분석용 일봉 정규화와 기술지표 계산을 검증한다.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { aggregateBars, barsForRange, chartScrollLeft, chartViewportBars, chartWidth, indicatorValues, macd, normalizeBars, purchaseMarkers, purchaseMarkersForUnit, rsi, sma } from "../analysis.mjs";
+import { aggregateBars, barsForRange, chartHoverIndex, chartScrollLeft, chartViewportBars, chartWidth, indicatorValues, macd, normalizeBars, purchaseMarkers, purchaseMarkersForUnit, rsi, sma } from "../analysis.mjs";
 
 const bars = Array.from({ length: 15 }, (_, index) => ({ time: `202608${String(index + 1).padStart(2, "0")}`, open: 100 + index, high: 101 + index, low: 99 + index, close: 100 + index, volume: 1000 + index }));
 
@@ -61,4 +61,9 @@ test("MACD line, signal, histogram share the source length", () => {
   const values = macd(Array.from({ length: 40 }, (_, index) => ({ close: 100 + index })));
   assert.equal(values.line.length, 40);
   assert.equal(values.signal.at(-1) !== null && values.histogram.at(-1) !== null, true);
+});
+
+test("hover crosshair selects the nearest visible candle", () => {
+  assert.equal(chartHoverIndex(120, 0, 58), 0);
+  assert.equal(chartHoverIndex(120, 0, 59 + (chartWidth(120) - 113) / 119), 1);
 });

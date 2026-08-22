@@ -152,3 +152,6 @@
 
 # Analysis entry
 - [x] Open analysis directly after five header-mark clicks and start GitHub login there when needed.
+
+# Hover crosshair
+- [x] Show a dotted vertical guide at the nearest hovered candle.
