@@ -185,4 +185,4 @@
 
 # Portfolio summary cards
 - [x] Replace two return cards with cost, value, profit, cumulative return, and annual return cards.
-- [ ] Deploy and verify static bundle.
+- [x] Deploy and verify static bundle.
