@@ -167,3 +167,6 @@
 # 2026-08-22 hover crosshair
 - The scrollable SVG chart uses one pointer-events-free dotted path that snaps to the nearest candle and hides when the pointer leaves the chart.
 - SVG paths need explicit `removeAttribute("hidden")`; setting the `hidden` property did not reveal the initial hidden guide in the browser.
+
+# 2026-08-22 Bollinger bands
+- The price pane now renders standard BB(20,2) as a pale blue fill with dotted upper and lower boundaries. Values in the visible viewport are included in auto-scale.

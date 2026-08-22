@@ -155,3 +155,6 @@
 
 # Hover crosshair
 - [x] Show a dotted vertical guide at the nearest hovered candle.
+
+# Bollinger bands
+- [x] Render 20-period, 2-standard-deviation bands behind price candles.

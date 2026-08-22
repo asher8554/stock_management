@@ -112,3 +112,7 @@
 # Hover crosshair
 
 1. Draw a dotted vertical line at the hovered candle. Verify: it follows the pointer across the chart and hides on exit.
+
+# Bollinger bands
+
+1. Add 20-period, 2-standard-deviation bands to the price pane. Verify: visible bands expand the price scale and show in the legend.
