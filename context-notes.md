@@ -173,3 +173,6 @@
 
 # 2026-08-22 hover price tooltip
 - The hover guide now shows the nearest candle's date and closing price in a pointer-following tooltip. It uses the selected holding currency and remains outside mouse hit testing.
+
+# 2026-08-22 daily purchase runway
+- The private account allocation now states the one-share-per-day purchase runway for the first holding with a valid current price. It uses `floor(cash / current price)` and labels the reference holding explicitly.

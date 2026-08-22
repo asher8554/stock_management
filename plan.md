@@ -120,3 +120,7 @@
 # Hover price tooltip
 
 1. Show hovered candle date and close price near the pointer. Verify: tooltip moves with the dotted guide and hides on exit.
+
+# Daily purchase runway
+
+1. Show how many one-share daily orders current cash funds at the held stock's current price. Verify: cash divided by last price is rounded down to days.

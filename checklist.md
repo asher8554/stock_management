@@ -161,3 +161,6 @@
 
 # Hover price tooltip
 - [x] Show the nearest candle date and close price next to the pointer.
+
+# Daily purchase runway
+- [x] Show one-share-per-day purchase days from cash and the held stock's current price.

@@ -1,5 +1,5 @@
 // KIS 보유종목의 일·주·월 차트와 기술지표를 SVG로 표시한다.
-import { actualAllocation, portfolioRows } from "./portfolio.mjs";
+import { actualAllocation, portfolioRows, purchaseDays } from "./portfolio.mjs";
 export const ANALYSIS_STORAGE_KEY = "stock-management-analysis-v2";
 export const ANALYSIS_RANGE_STORAGE_KEY = "stock-management-analysis-range-v1";
 export const ANALYSIS_UNIT_STORAGE_KEY = "stock-management-analysis-unit-v1";
@@ -20,7 +20,7 @@ function renderActualAllocation(snapshot) {
   const content = document.createElement("div"); content.className = "actual-allocation-content"; const bar = document.createElement("div"); bar.className = "actual-bar"; bar.setAttribute("role", "img"); bar.setAttribute("aria-label", `현금 ${money(values.cash)} ${values.cashPercent}%, 주식 ${money(values.stock)} ${values.stockPercent}%`);
   [["cash", values.cashPercent], ["stock", values.stockPercent]].forEach(([name, percent]) => { const segment = document.createElement("i"); segment.className = name; segment.style.width = `${percent}%`; const text = document.createElement("span"); text.textContent = `${percent}%`; segment.append(text); bar.append(segment); });
   const details = document.createElement("div"); details.className = "actual-allocation-details"; [["cash", "현금", values.cash], ["stock", "주식", values.stock]].forEach(([name, label, value]) => { const item = document.createElement("p"); item.className = name; item.textContent = `${label} ${money(value)}`; details.append(item); });
-  content.append(bar, details); container.append(title, content); container.hidden = false;
+  const row = portfolioRows(snapshot).find((item) => number(item.lastPrice) > 0); if (row) { const runway = document.createElement("div"); runway.className = "buy-runway"; const label = document.createElement("span"); label.textContent = `1주/일 · ${row.name} 현재가 기준`; const days = document.createElement("strong"); days.textContent = `${purchaseDays(values.cash, number(row.lastPrice)).toLocaleString("ko-KR")}일`; runway.append(label, days); content.append(bar, details, runway); } else content.append(bar, details); container.append(title, content); container.hidden = false;
 }
 
 function renderHoldings(snapshot) {

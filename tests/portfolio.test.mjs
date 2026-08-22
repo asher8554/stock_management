@@ -1,6 +1,6 @@
 // 비공개 포트폴리오 종목 행 변환을 검증한다.
 import assert from "node:assert/strict";
-import { actualAllocation, portfolioRows } from "../portfolio.mjs";
+import { actualAllocation, portfolioRows, purchaseDays } from "../portfolio.mjs";
 
 const rows = portfolioRows({ accounts: [{ provider: "toss", items: [{ name: "삼성전자", symbol: "005930", quantity: "3", marketValue: "210000", currency: "KRW" }] }] });
 
@@ -15,3 +15,5 @@ assert.equal(kisRows[0].gainAmount, 1000);
 assert.deepEqual(actualAllocation({ accounts: [{ cash: "300", stockValue: "700" }] }), {
   cash: 300, stock: 700, defense: 0, cashPercent: 30, stockPercent: 70, defensePercent: 0,
 });
+
+assert.equal(purchaseDays(2661508, 87795), 30);
