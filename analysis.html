@@ -18,7 +18,7 @@
     <section class="analysis-controls" aria-labelledby="analysis-title">
       <div><p class="eyebrow">TRADINGVIEW ANALYSIS</p><h2 id="analysis-title">차트 분석</h2><p class="hint">종목·주기·관심종목은 이 브라우저에 저장됩니다.</p></div>
       <form id="analysis-form" novalidate>
-        <label>TradingView 종목<input id="analysis-symbol" name="symbol" autocomplete="off" spellcheck="false" placeholder="KRX:237350" required></label>
+        <label>TradingView 종목<input id="analysis-symbol" name="symbol" autocomplete="off" spellcheck="false" placeholder="NASDAQ:AAPL" required></label>
         <label>주기<select id="analysis-interval" name="interval"><option value="1">1분</option><option value="5">5분</option><option value="15">15분</option><option value="30">30분</option><option value="60">1시간</option><option value="240">4시간</option><option value="D">일봉</option><option value="W">주봉</option><option value="M">월봉</option></select></label>
         <button type="submit">차트 적용</button>
       </form>
@@ -28,9 +28,9 @@
     <section class="analysis-watchlist" aria-labelledby="watchlist-title">
       <div><p class="eyebrow">SAVED WATCHLIST</p><h2 id="watchlist-title">관심종목</h2></div>
       <ul id="watchlist"></ul>
-      <p class="hint">차트 도구 모음에서 보조지표, 드로잉, 비교, 스냅샷을 사용할 수 있습니다.</p>
+      <p class="hint">차트 도구 모음에서 보조지표, 드로잉, 비교, 스냅샷을 사용할 수 있습니다. KODEX 코스피100은 TradingView 위젯 데이터 제한으로 표시되지 않습니다.</p>
     </section>
   </main>
-  <script type="module" src="analysis.mjs?v=20260822-1"></script>
+  <script type="module" src="analysis.mjs?v=20260822-2"></script>
 </body>
 </html>

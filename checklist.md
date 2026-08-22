@@ -77,3 +77,7 @@
 - [x] Add the analysis route and shared navigation.
 - [x] Implement local selection and watchlist persistence.
 - [x] Validate, deploy, and verify the route.
+
+# TradingView widget compatibility
+- [x] Replace the unavailable KODEX 코스피100 default with a widget-supported symbol.
+- [x] Reset the previously saved unavailable default and show a clear inline message.

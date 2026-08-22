@@ -1,17 +1,21 @@
 // TradingView 분석 화면의 종목·주기·관심종목 상태를 브라우저에 저장한다.
 export const ANALYSIS_STORAGE_KEY = "stock-management-analysis-v1";
-export const DEFAULT_ANALYSIS_STATE = Object.freeze({ symbol: "KRX:237350", interval: "D", watchlist: ["KRX:237350"] });
+export const DEFAULT_ANALYSIS_STATE = Object.freeze({ symbol: "NASDAQ:AAPL", interval: "D", watchlist: ["NASDAQ:AAPL"] });
 const intervals = new Set(["1", "5", "15", "30", "60", "240", "D", "W", "M"]);
 
 export function isTradingViewSymbol(value) {
   return /^[A-Z0-9._-]+:[A-Z0-9._-]+$/i.test(String(value || "").trim());
 }
 
+export function isWidgetAvailableSymbol(value) {
+  return isTradingViewSymbol(value) && String(value).trim().toUpperCase() !== "KRX:237350";
+}
+
 export function normalizeAnalysisState(value) {
   const input = value && typeof value === "object" ? value : {};
-  const symbol = isTradingViewSymbol(input.symbol) ? String(input.symbol).trim().toUpperCase() : DEFAULT_ANALYSIS_STATE.symbol;
+  const symbol = isWidgetAvailableSymbol(input.symbol) ? String(input.symbol).trim().toUpperCase() : DEFAULT_ANALYSIS_STATE.symbol;
   const interval = intervals.has(String(input.interval)) ? String(input.interval) : DEFAULT_ANALYSIS_STATE.interval;
-  const watchlist = [...new Set((Array.isArray(input.watchlist) ? input.watchlist : []).map((item) => String(item).trim().toUpperCase()).filter(isTradingViewSymbol))].slice(0, 12);
+  const watchlist = [...new Set((Array.isArray(input.watchlist) ? input.watchlist : []).map((item) => String(item).trim().toUpperCase()).filter(isWidgetAvailableSymbol))].slice(0, 12);
   return { symbol, interval, watchlist: watchlist.length ? watchlist : [symbol] };
 }
 
@@ -98,7 +102,12 @@ function init() {
     event.preventDefault();
     const symbol = symbolInput.value.trim().toUpperCase();
     if (!isTradingViewSymbol(symbol)) {
-      error.textContent = "TradingView 종목 코드를 `거래소:종목` 형식으로 입력하세요. 예: KRX:237350";
+      error.textContent = "TradingView 종목 코드를 `거래소:종목` 형식으로 입력하세요. 예: NASDAQ:AAPL";
+      symbolInput.focus();
+      return;
+    }
+    if (!isWidgetAvailableSymbol(symbol)) {
+      error.textContent = "KODEX 코스피100은 TradingView 위젯 데이터에 포함되지 않습니다. 다른 TradingView 지원 종목을 입력하세요.";
       symbolInput.focus();
       return;
     }

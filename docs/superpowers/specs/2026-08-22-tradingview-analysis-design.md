@@ -25,8 +25,8 @@ Stored state uses one versioned local-storage key containing the selected Tradin
 
 ## Interaction
 
-1. On first visit, show `KRX:237350` at daily resolution.
-2. A user enters a TradingView symbol such as `KRX:237350` or `NASDAQ:AAPL`, selects an interval, and applies it.
+1. On first visit, show `NASDAQ:AAPL` at daily resolution.
+2. A user enters a widget-supported TradingView symbol such as `NASDAQ:AAPL`, selects an interval, and applies it.
 3. The page validates the simple `EXCHANGE:SYMBOL` format, saves state locally, and recreates the widget.
 4. A user can add or remove page-owned watchlist symbols. Selecting one applies it to the chart and saves the state.
 5. Inside the widget, the user uses TradingView's own toolbar for indicators, drawings, comparisons, and image export.
@@ -34,6 +34,7 @@ Stored state uses one versioned local-storage key containing the selected Tradin
 ## Error handling
 
 - Invalid symbol input receives an inline error and does not replace the current chart.
+- `KRX:237350` is excluded because TradingView does not license it for widgets; an existing saved selection is reset to the default symbol.
 - If the TradingView script fails to load, show a visible link that opens the selected symbol directly on TradingView.
 - Never send local settings to the Worker.
 
