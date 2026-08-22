@@ -1,4 +1,5 @@
 // KIS 보유종목의 일·주·월 차트와 기술지표를 SVG로 표시한다.
+import { actualAllocation, portfolioRows } from "./portfolio.mjs";
 export const ANALYSIS_STORAGE_KEY = "stock-management-analysis-v2";
 export const ANALYSIS_RANGE_STORAGE_KEY = "stock-management-analysis-range-v1";
 export const ANALYSIS_UNIT_STORAGE_KEY = "stock-management-analysis-unit-v1";
@@ -9,6 +10,26 @@ const API_BASE = "https://stock-management-private-api.household-account-asher.w
 const number = (value) => Number(String(value ?? "").replaceAll(",", ""));
 const won = (value) => `₩${Math.round(number(value) || 0).toLocaleString("ko-KR")}`;
 const datePart = (time) => String(time).slice(0, 8);
+const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
+const moneyOrDash = (value, currency) => Number.isFinite(Number(value)) ? money(value, currency) : "-";
+const signedMoney = (value, currency) => Number.isFinite(Number(value)) ? `${Number(value) > 0 ? "+" : ""}${money(value, currency)}` : "-";
+
+function renderActualAllocation(snapshot) {
+  const values = actualAllocation(snapshot); const container = document.getElementById("actual-allocation"); container.replaceChildren();
+  const title = document.createElement("p"); title.className = "eyebrow"; title.textContent = "ACTUAL ALLOCATION";
+  const content = document.createElement("div"); content.className = "actual-allocation-content"; const bar = document.createElement("div"); bar.className = "actual-bar"; bar.setAttribute("role", "img"); bar.setAttribute("aria-label", `현금 ${money(values.cash)} ${values.cashPercent}%, 주식 ${money(values.stock)} ${values.stockPercent}%`);
+  [["cash", values.cashPercent], ["stock", values.stockPercent]].forEach(([name, percent]) => { const segment = document.createElement("i"); segment.className = name; segment.style.width = `${percent}%`; const text = document.createElement("span"); text.textContent = `${percent}%`; segment.append(text); bar.append(segment); });
+  const details = document.createElement("div"); details.className = "actual-allocation-details"; [["cash", "현금", values.cash], ["stock", "주식", values.stock]].forEach(([name, label, value]) => { const item = document.createElement("p"); item.className = name; item.textContent = `${label} ${money(value)}`; details.append(item); });
+  content.append(bar, details); container.append(title, content); container.hidden = false;
+}
+
+function renderHoldings(snapshot) {
+  const holdings = document.getElementById("portfolio-holdings"); const rows = portfolioRows(snapshot); holdings.replaceChildren();
+  if (!rows.length) { holdings.textContent = "보유 종목이 없습니다."; holdings.hidden = false; return; }
+  const title = document.createElement("h3"); title.textContent = "한국투자증권 계좌"; const table = document.createElement("table"); table.innerHTML = "<thead><tr><th>증권사</th><th>종목</th><th>수량</th><th>현재가</th><th>평균매수가</th><th>수익률</th><th>수익금액</th><th>평가액</th></tr></thead>";
+  const body = document.createElement("tbody"); rows.forEach((row) => { const tr = document.createElement("tr"); [row.provider, `${row.name} (${row.symbol})`, row.quantity, moneyOrDash(row.lastPrice, row.currency), moneyOrDash(row.averagePurchasePrice, row.currency), row.gainRate === null ? "-" : `${row.gainRate > 0 ? "+" : ""}${row.gainRate}%`, signedMoney(row.gainAmount, row.currency), money(row.marketValue, row.currency)].forEach((value) => { const cell = document.createElement("td"); cell.textContent = value; tr.append(cell); }); body.append(tr); });
+  table.append(body); holdings.append(title, table); holdings.hidden = false;
+}
 
 export function normalizeBars(bars) {
   return (Array.isArray(bars) ? bars : []).map((bar) => {
@@ -138,9 +159,11 @@ async function init() {
   host.addEventListener("scroll", () => { if (rendering || Math.abs(host.scrollLeft - renderedScrollLeft) < 1) return; cancelAnimationFrame(scrollFrame); scrollFrame = requestAnimationFrame(render); });
   host.addEventListener("wheel", (event) => { if (!event.shiftKey) return; event.preventDefault(); chartZoom = Math.min(3, Math.max(.35, chartZoom * (event.deltaY < 0 ? 1.15 : 1 / 1.15))); localStorage.setItem(ANALYSIS_ZOOM_STORAGE_KEY, String(chartZoom)); render(); }, { passive: false });
   const load = async () => {
+    const summary = document.getElementById("private-summary"); const status = document.getElementById("private-status"); summary.hidden = false; status.textContent = "보유 정보를 불러오는 중입니다.";
     const portfolio = await fetch(`${API_BASE}/v1/portfolio`, { headers: { authorization: `Bearer ${token}` } });
-    if (!portfolio.ok) throw new Error(`보유 정보 요청 실패. HTTP ${portfolio.status}`);
+    if (!portfolio.ok) { status.textContent = portfolio.status === 403 ? "GitHub 로그인이 필요합니다." : "아직 동기화 데이터가 없습니다."; throw new Error(`보유 정보 요청 실패. HTTP ${portfolio.status}`); }
     const snapshot = await portfolio.json(); if (!Array.isArray(snapshot.accounts)) throw new Error("보유 정보 응답 형식이 올바르지 않습니다.");
+    renderActualAllocation(snapshot); renderHoldings(snapshot); status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
     items = snapshot.accounts.flatMap((account) => (Array.isArray(account.items) ? account.items : []).map((item) => ({ ...item, provider: account.provider }))).filter((item) => normalizeBars(item.bars).length);
     if (!items.length) { holdings.textContent = "일별 데이터가 없습니다."; host.textContent = "보유종목 일별 데이터가 아직 동기화되지 않았습니다."; return; }
     render();

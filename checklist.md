@@ -145,3 +145,7 @@
 # Daily purchase markers
 - [x] Remove tick, second, minute, and hour chart controls and data reads.
 - [x] Restrict purchase markers to the daily chart.
+
+# Private portfolio location
+- [x] Move private account summary, holdings, and actual allocation to analysis.
+- [x] Redirect completed GitHub login to the analysis page.
