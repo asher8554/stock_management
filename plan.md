@@ -86,3 +86,8 @@
 # Private login entry
 
 1. Start GitHub OAuth on the fifth mark click. Verify: OAuth callback still triggers the existing portfolio load.
+
+# Scrollable technical chart
+
+1. Preserve candle size and extend the SVG width by bar count. Verify: overflowing history scrolls horizontally without shrinking candles.
+2. Preserve the viewer's horizontal position on automatic refresh. Verify: live refresh does not jump the viewed period.

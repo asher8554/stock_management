@@ -113,3 +113,7 @@
 
 # Private login entry
 - [x] Start GitHub OAuth automatically after the fifth header-mark click.
+
+# Scrollable technical chart
+- [x] Keep the chart viewport stable and scroll full history horizontally.
+- [x] Preserve the viewed position during automatic refresh.
