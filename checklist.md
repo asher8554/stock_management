@@ -197,4 +197,4 @@
 
 # Account-wide summary totals
 - [x] Include cash and stocks in account cost basis, value, profit, and cumulative return.
-- [ ] Test, deploy, and verify static bundle.
+- [x] Test, deploy, and verify static bundle.
