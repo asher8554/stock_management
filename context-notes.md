@@ -113,3 +113,4 @@
 
 # 2026-08-22 real-time timestamp correction
 - Synology reports Saturday, 2026-08-22 KST, so no new domestic-market trades can arrive now. The collector also used an uncertain payload field as its date; normalize every tick with the collector's current `YYYYMMDD` plus the official `HHMMSS` field.
+- The user rebuilt the Synology container after the corrected collector source was copied.

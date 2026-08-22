@@ -103,4 +103,4 @@
 - [x] Page KIS daily history to the first available date and upload it.
 
 # Real-time timestamp correction
-- [ ] Normalize KIS real-time tick timestamps and redeploy the Synology collector.
+- [x] Normalize KIS real-time tick timestamps and redeploy the Synology collector.
