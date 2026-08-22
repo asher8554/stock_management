@@ -160,3 +160,7 @@
 # Portfolio summary header placement
 
 1. Place five desktop cards in the account header's unused right space. Verify: holdings remain directly below the account heading.
+
+# Account-wide summary totals
+
+1. Include cash with held stocks in cost basis, value, profit, and cumulative return. Verify: each total represents the full account.

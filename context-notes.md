@@ -203,3 +203,6 @@
 
 # 2026-08-22 portfolio summary header placement
 - The five desktop summary cards sit in the unused right side of the private-account header, leaving the holdings table immediately below the account heading.
+
+# 2026-08-22 account-wide summary totals
+- Account cost basis and current value now include cash plus held stocks. Annual return remains a holding-price measure because account-level cash-flow history is unavailable.
