@@ -143,9 +143,12 @@ export default {
       if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
       const snapshot = await request.json().catch(() => null);
       if (!snapshot?.symbol || !Array.isArray(snapshot.bars)) return json({ error: "invalid_intraday_snapshot" }, 400, headers);
-      const previous = snapshot.append && JSON.parse(await env.PORTFOLIO_CACHE.get(`intraday:${snapshot.symbol}`) || "null");
+      const day = String(snapshot.bars[0]?.time || "").slice(0, 8);
+      if (!/^\d{8}$/.test(day)) return json({ error: "invalid_intraday_snapshot" }, 400, headers);
+      const key = `intraday:${snapshot.symbol}:${day}`;
+      const previous = snapshot.append && JSON.parse(await env.PORTFOLIO_CACHE.get(key) || "null");
       const bars = previous ? Object.values(Object.fromEntries([...previous.bars, ...snapshot.bars].map((bar) => [bar.time, bar]))).sort((left, right) => left.time.localeCompare(right.time)) : snapshot.bars;
-      await env.PORTFOLIO_CACHE.put(`intraday:${snapshot.symbol}`, JSON.stringify({ symbol: snapshot.symbol, bars }));
+      await env.PORTFOLIO_CACHE.put(key, JSON.stringify({ symbol: snapshot.symbol, bars }));
       return json({ ok: true }, 200, headers);
     }
     if (request.method === "GET" && pathname === "/v1/portfolio") {
@@ -161,8 +164,11 @@ export default {
     if (request.method === "GET" && pathname === "/v1/intraday") {
       if (!await hasSession(request, env.GITHUB_SESSION_SECRET)) return json({ error: "forbidden" }, 403, headers);
       const symbol = new URL(request.url).searchParams.get("symbol");
-      const snapshot = symbol && await env.PORTFOLIO_CACHE.get(`intraday:${symbol}`);
-      return snapshot ? new Response(snapshot, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } }) : json({ error: "not_collected" }, 503, headers);
+      const legacy = symbol && await env.PORTFOLIO_CACHE.get(`intraday:${symbol}`);
+      const keys = symbol ? (await env.PORTFOLIO_CACHE.list({ prefix: `intraday:${symbol}:` })).keys : [];
+      const chunks = await Promise.all(keys.map(({ name }) => env.PORTFOLIO_CACHE.get(name)));
+      const bars = Object.values(Object.fromEntries([legacy, ...chunks].filter(Boolean).flatMap((value) => JSON.parse(value).bars).map((bar) => [bar.time, bar]))).sort((left, right) => left.time.localeCompare(right.time));
+      return bars.length ? new Response(JSON.stringify({ symbol, bars }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } }) : json({ error: "not_collected" }, 503, headers);
     }
     return json({ error: "not_found" }, 404, headers);
   },

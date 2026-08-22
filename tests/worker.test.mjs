@@ -9,7 +9,7 @@ const env = {
   GITHUB_CLIENT_SECRET: "client-secret",
   GITHUB_SESSION_SECRET: "session-secret",
   ALLOWED_GITHUB_LOGIN: "\uFEFFowner",
-  PORTFOLIO_CACHE: { get: (key) => cache.get(key), put: (key, value) => cache.set(key, value), delete: (key) => cache.delete(key) },
+  PORTFOLIO_CACHE: { get: (key) => cache.get(key), put: (key, value) => cache.set(key, value), delete: (key) => cache.delete(key), list: ({ prefix }) => ({ keys: [...cache.keys()].filter((key) => key.startsWith(prefix)).map((name) => ({ name })) }) },
 };
 const snapshot = { updatedAt: "2026-08-21T00:00:00Z", accounts: [] };
 
@@ -56,4 +56,7 @@ assert.equal((await worker.fetch(new Request("https://api/v1/realtime", { header
 const intradaySnapshot = { symbol: "237350", bars: [{ time: "20260821T090000", close: 100 }] };
 assert.equal((await worker.fetch(new Request("https://api/v1/intraday", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(intradaySnapshot) }), env)).status, 200);
 assert.equal((await worker.fetch(new Request("https://api/v1/intraday", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify({ ...intradaySnapshot, bars: [{ time: "20260821T090100", close: 101 }], append: true }) }), env)).status, 200);
-assert.equal((await worker.fetch(new Request("https://api/v1/intraday?symbol=237350", { headers: { authorization: `Bearer ${session}` } }), env)).status, 200);
+assert.equal(cache.has("intraday:237350:20260821"), true);
+const intraday = await worker.fetch(new Request("https://api/v1/intraday?symbol=237350", { headers: { authorization: `Bearer ${session}` } }), env);
+assert.equal(intraday.status, 200);
+assert.equal((await intraday.json()).bars.length, 2);

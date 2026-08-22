@@ -124,3 +124,9 @@
 
 # 2026-08-22 private login entry
 - The fifth header-mark click now redirects straight to the existing GitHub OAuth endpoint. The OAuth callback retains its existing session-storage and automatic private-portfolio loading flow.
+
+# 2026-08-22 intraday storage recovery
+- The original append endpoint merged every prior minute bar on each daily upload, causing Cloudflare Worker error 1102 during the one-year backfill. Minute bars now use one KV key per symbol and trade date; the authenticated read route merges those small chunks only when the analysis page requests them.
+
+# 2026-08-22 scrollable technical chart
+- The chart keeps the existing approximately 120-candle viewport. Wider histories increase the SVG width and use the existing horizontal overflow container; automatic refresh preserves the viewed distance from the latest candle.
