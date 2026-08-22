@@ -148,3 +148,6 @@
 
 # 2026-08-22 price axis and MACD
 - Current price and average purchase price belong on the fixed right price axis, not below the horizontally scrollable SVG. The analysis chart now reserves right-axis space for both values and adds a MACD 12·26·9 panel below RSI.
+
+# 2026-08-22 purchase marker sync retry
+- KIS completed-buy execution retrieval succeeds, but the Worker rejects the refreshed `/v1/snapshot` write with Cloudflare error 1101. The existing private snapshot therefore still lacks the `purchases` records required for markers until Worker KV writes are available again.
