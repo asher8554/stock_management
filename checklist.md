@@ -98,3 +98,6 @@
 - [x] Add a Synology Docker KIS WebSocket collector.
 - [x] Add chart-unit controls, time axis, and unit-based 20/60/120 moving averages.
 - [x] Validate locally and prepare Synology deployment.
+
+# Full daily history
+- [x] Page KIS daily history to the first available date and upload it.

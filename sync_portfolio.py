@@ -1,6 +1,7 @@
 # 한국투자증권과 토스증권의 읽기 전용 잔고를 로컬에서 동기화한다.
 import json
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.error import HTTPError
@@ -70,11 +71,25 @@ def kis_snapshot(data):
 
 def kis_daily_bars(token, symbol):
     end = datetime.now().astimezone().date()
-    query = urlencode({"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": symbol, "FID_INPUT_DATE_1": (end - timedelta(days=1826)).strftime("%Y%m%d"), "FID_INPUT_DATE_2": end.strftime("%Y%m%d"), "FID_PERIOD_DIV_CODE": "D", "FID_ORG_ADJ_PRC": "0"})
-    data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": "FHKST03010100"})
-    if data.get("rt_cd") != "0":
-        raise RuntimeError(data.get("msg1", "한국투자증권 일봉 조회 실패"))
-    return [{"time": row.get("stck_bsop_date"), "open": row.get("stck_oprc"), "high": row.get("stck_hgpr"), "low": row.get("stck_lwpr"), "close": row.get("stck_clpr"), "volume": row.get("acml_vol")} for row in data.get("output2", [])]
+    start = "19900101"
+    cursor = end.strftime("%Y%m%d")
+    rows = []
+    while cursor >= start:
+        query = urlencode({"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": symbol, "FID_INPUT_DATE_1": start, "FID_INPUT_DATE_2": cursor, "FID_PERIOD_DIV_CODE": "D", "FID_ORG_ADJ_PRC": "0"})
+        data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": "FHKST03010100"})
+        if data.get("rt_cd") != "0":
+            raise RuntimeError(data.get("msg1", "한국투자증권 일봉 조회 실패"))
+        page = data.get("output2", [])
+        if not page:
+            break
+        rows.extend(page)
+        oldest = page[-1].get("stck_bsop_date", "")
+        if len(page) < 100 or not oldest or oldest <= start:
+            break
+        cursor = (datetime.strptime(oldest, "%Y%m%d").date() - timedelta(days=1)).strftime("%Y%m%d")
+        time.sleep(.15)
+    unique = {row.get("stck_bsop_date"): row for row in rows}
+    return [{"time": row.get("stck_bsop_date"), "open": row.get("stck_oprc"), "high": row.get("stck_hgpr"), "low": row.get("stck_lwpr"), "close": row.get("stck_clpr"), "volume": row.get("acml_vol")} for _, row in sorted(unique.items())]
 
 
 def kis_account():

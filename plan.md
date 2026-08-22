@@ -65,3 +65,7 @@
 # Chart unit rendering correction
 
 1. Scale candle and volume widths to the visible bar count. Verify: tick and long-range charts no longer overlap into a solid block.
+
+# Full daily history
+
+1. Page KIS daily responses backward to the instrument's first available day. Verify: stored bars exceed the previous five-year window.

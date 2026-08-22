@@ -106,3 +106,7 @@
 
 # 2026-08-22 chart unit rendering correction
 - Daily charts appeared normal while non-daily selections overlapped because SVG candle and volume widths were fixed at 4px and 6px regardless of visible bar count. Width must follow available horizontal spacing.
+
+# 2026-08-22 full daily history
+- The previous collector used one KIS daily-price call with a 1,826-day start. The KIS endpoint returns at most 100 rows per response, so `전체` must page backward from the most recent returned date to the first available date.
+- The one-time full-history `python sync_portfolio.py` run completed successfully and uploaded the updated private snapshot.
