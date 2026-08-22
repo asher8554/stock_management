@@ -143,7 +143,9 @@ export default {
       if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
       const snapshot = await request.json().catch(() => null);
       if (!snapshot?.symbol || !Array.isArray(snapshot.bars)) return json({ error: "invalid_intraday_snapshot" }, 400, headers);
-      await env.PORTFOLIO_CACHE.put(`intraday:${snapshot.symbol}`, JSON.stringify(snapshot));
+      const previous = snapshot.append && JSON.parse(await env.PORTFOLIO_CACHE.get(`intraday:${snapshot.symbol}`) || "null");
+      const bars = previous ? Object.values(Object.fromEntries([...previous.bars, ...snapshot.bars].map((bar) => [bar.time, bar]))).sort((left, right) => left.time.localeCompare(right.time)) : snapshot.bars;
+      await env.PORTFOLIO_CACHE.put(`intraday:${snapshot.symbol}`, JSON.stringify({ symbol: snapshot.symbol, bars }));
       return json({ ok: true }, 200, headers);
     }
     if (request.method === "GET" && pathname === "/v1/portfolio") {

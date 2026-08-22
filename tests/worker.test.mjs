@@ -55,4 +55,5 @@ assert.equal((await worker.fetch(new Request("https://api/v1/realtime", { method
 assert.equal((await worker.fetch(new Request("https://api/v1/realtime", { headers: { authorization: `Bearer ${session}` } }), env)).status, 200);
 const intradaySnapshot = { symbol: "237350", bars: [{ time: "20260821T090000", close: 100 }] };
 assert.equal((await worker.fetch(new Request("https://api/v1/intraday", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(intradaySnapshot) }), env)).status, 200);
+assert.equal((await worker.fetch(new Request("https://api/v1/intraday", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify({ ...intradaySnapshot, bars: [{ time: "20260821T090100", close: 101 }], append: true }) }), env)).status, 200);
 assert.equal((await worker.fetch(new Request("https://api/v1/intraday?symbol=237350", { headers: { authorization: `Bearer ${session}` } }), env)).status, 200);

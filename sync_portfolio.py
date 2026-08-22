@@ -157,20 +157,16 @@ def krx_snapshot():
 def main():
     load_env()
     accounts = []
-    intraday = []
     if os.environ.get("TOSS_CLIENT_ID") or os.environ.get("TOSS_CLIENT_KEY"):
         accounts.append(toss_account())
     if os.environ.get("KIS_APP_KEY"):
-        account, token = kis_account()
+        account, _ = kis_account()
         accounts.append(account)
-        intraday = [{"symbol": item["symbol"], "bars": kis_intraday_bars(token, item["symbol"])} for item in account["items"]]
     if not accounts:
         raise RuntimeError("TOSS_CLIENT_ID 또는 KIS_APP_KEY 환경변수가 필요합니다.")
     snapshot = {"updatedAt": datetime.now(timezone.utc).isoformat(), "accounts": accounts}
     url = os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/snapshot"
     request_json(url, method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=snapshot)
-    for item in intraday:
-        request_json(os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/intraday", method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=item)
     request_json(os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/market/krx", method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=krx_snapshot())
 
 
