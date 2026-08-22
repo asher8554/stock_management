@@ -182,3 +182,7 @@
 
 # Price-label collision spacing
 - [x] Separate overlapping fixed price labels by at least 22px.
+
+# Portfolio summary cards
+- [x] Replace two return cards with cost, value, profit, cumulative return, and annual return cards.
+- [ ] Deploy and verify static bundle.

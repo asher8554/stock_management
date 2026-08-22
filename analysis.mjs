@@ -33,13 +33,17 @@ function renderHoldings(snapshot) {
 }
 
 export function cumulativeReturn(rows) {
-  const totals = rows.reduce((sum, row) => ({ cost: sum.cost + number(row.averagePurchasePrice) * number(row.quantity), value: sum.value + number(row.marketValue) }), { cost: 0, value: 0 });
+  const totals = portfolioTotals(rows);
   return totals.cost > 0 && Number.isFinite(totals.value) ? Number(((totals.value / totals.cost - 1) * 100).toFixed(2)) : null;
 }
 
+export function portfolioTotals(rows) {
+  return rows.reduce((sum, row) => ({ cost: sum.cost + number(row.averagePurchasePrice) * number(row.quantity), value: sum.value + number(row.marketValue) }), { cost: 0, value: 0 });
+}
+
 function renderPortfolioPerformance(snapshot) {
-  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const item = snapshot.accounts.flatMap((account) => account.items || []).find((holding) => Array.isArray(holding.bars) && holding.bars.length); const values = [{ label: "누적 수익률", value: cumulativeReturn(rows), hint: "보유주식 매입원가 기준" }, { label: "연간 수익률", value: item ? annualReturn(item.bars) : null, hint: "최근 1년 종가 기준" }];
-  container.replaceChildren(...values.map(({ label, value, hint }) => { const metric = document.createElement("article"); metric.className = Number(value) < 0 ? "loss" : "gain"; const title = document.createElement("p"); title.textContent = label; const result = document.createElement("strong"); result.textContent = Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value}%` : "-"; const note = document.createElement("small"); note.textContent = hint; metric.append(title, result, note); return metric; })); container.hidden = false;
+  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const totals = portfolioTotals(rows); const currency = rows[0]?.currency || "KRW"; const item = snapshot.accounts.flatMap((account) => account.items || []).find((holding) => Array.isArray(holding.bars) && holding.bars.length); const values = [{ label: "매입 원금", value: money(totals.cost, currency), hint: "평균매수가 × 수량", tone: "neutral" }, { label: "현재 평가액", value: money(totals.value, currency), hint: "보유주식 기준", tone: "neutral" }, { label: "수익금액", value: signedMoney(totals.value - totals.cost, currency), hint: "평가액 − 원금", tone: totals.value - totals.cost < 0 ? "loss" : "gain" }, { label: "누적 수익률", value: cumulativeReturn(rows), hint: "매입원가 기준", tone: cumulativeReturn(rows) < 0 ? "loss" : "gain", percent: true }, { label: "연간 수익률", value: item ? annualReturn(item.bars) : null, hint: "최근 1년 종가 기준", tone: annualReturn(item?.bars || []) < 0 ? "loss" : "gain", percent: true }];
+  container.replaceChildren(...values.map(({ label, value, hint, tone, percent }) => { const metric = document.createElement("article"); metric.className = tone; const title = document.createElement("p"); title.textContent = label; const result = document.createElement("strong"); result.textContent = percent ? (Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value}%` : "-") : value; const note = document.createElement("small"); note.textContent = hint; metric.append(title, result, note); return metric; })); container.hidden = false;
 }
 
 export function normalizeBars(bars) {

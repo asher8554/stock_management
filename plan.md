@@ -148,3 +148,7 @@
 # Price-label collision spacing
 
 1. Keep adjacent fixed price labels at least 22px apart. Verify: current and average labels remain readable when prices are close.
+
+# Portfolio summary cards
+
+1. Replace the two return cards with five compact holding-summary cards. Verify: cost basis, market value, profit, cumulative return, and annual return appear together.

@@ -194,3 +194,6 @@
 
 # 2026-08-22 price-label collision spacing
 - Fixed price labels are sorted by marker height and placed with a 22px minimum gap. Their colored dotted marker lines remain at the exact price heights.
+
+# 2026-08-22 portfolio summary cards
+- The account header now summarizes held-stock cost basis, current market value, profit amount, cumulative return, and annual return as five compact cards. Cash stays excluded because no deposit-history baseline exists.
