@@ -100,3 +100,6 @@
 # 2026-08-22 chart unit controls
 - The NAS container is `Up`; the analysis page can now consume its existing authenticated `/v1/realtime` route. Intraday units will aggregate those stored ticks in the browser, keeping the Worker storage format unchanged.
 - `node --test tests/analysis.test.mjs tests/worker.test.mjs` passes, including minute aggregation and displayed time formatting.
+
+# 2026-08-22 local sync removal
+- The user removed the Windows `StockManagementPortfolioSync` task and `run_sync_portfolio.cmd`. Synology Docker remains the only active collection process.
