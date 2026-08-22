@@ -30,16 +30,30 @@ def day_bars(token, symbol, day):
     return list(rows.values())
 
 
+def retry_day_bars(token, symbol, day):
+    for attempt in range(3):
+        try:
+            return day_bars(token, symbol, day)
+        except RuntimeError:
+            if attempt == 2:
+                raise
+            time.sleep(3)
+
+
 def main():
     load_env()
     token = request_json("https://openapi.koreainvestment.com:9443/oauth2/tokenP", method="POST", headers={"content-type": "application/json"}, json_body={"grant_type": "client_credentials", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"]})["access_token"]
     url = os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/intraday"
     for symbol in [value.strip() for value in os.environ.get("KIS_SYMBOLS", "237350").split(",") if value.strip()]:
         for offset in range(366):
-            day = (datetime.now().astimezone().date() - timedelta(days=offset)).strftime("%Y%m%d")
-            bars = day_bars(token, symbol, day)
+            date = datetime.now().astimezone().date() - timedelta(days=offset)
+            if date.weekday() >= 5:
+                continue
+            day = date.strftime("%Y%m%d")
+            bars = retry_day_bars(token, symbol, day)
             if bars:
                 request_json(url, method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body={"symbol": symbol, "bars": bars, "append": True})
+            print(f"{symbol} {day} {len(bars)}", flush=True)
             time.sleep(.4)
 
 

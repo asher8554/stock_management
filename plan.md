@@ -77,3 +77,8 @@
 # Daily moving averages on higher units
 
 1. Sample daily 20/60/120 moving averages at weekly and monthly candle boundaries. Verify: weekly and monthly legends remain day-based.
+
+# Historical minute and hour charts
+
+1. Fetch one KIS trading day at a time and append it privately. Verify: completed dates remain stored if a later request fails.
+2. Use stored minute data only for minute and hour views. Verify: tick and second views stay live-only.
