@@ -42,6 +42,7 @@ test("weekly candles sample daily moving average", () => {
 test("scrollable chart keeps the current viewport width then grows by bars", () => {
   assert.equal(chartWidth(120), 1080);
   assert.equal(chartWidth(121), 1088);
+  assert.equal(chartWidth(240, 2) > chartWidth(240), true);
 });
 
 test("scroll position selects the price auto-scale bars", () => {

@@ -137,3 +137,7 @@
 # Price axis and MACD
 - [x] Show current price and average purchase price on the fixed right price axis.
 - [x] Add a MACD 12·26·9 panel below RSI.
+
+# MACD and time zoom
+- [x] Expand the MACD panel for readable bars and lines.
+- [x] Support persistent time-axis zoom with Shift+wheel.

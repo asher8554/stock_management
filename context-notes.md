@@ -151,3 +151,6 @@
 
 # 2026-08-22 purchase marker sync retry
 - KIS completed-buy execution retrieval succeeds, but the Worker rejects the refreshed `/v1/snapshot` write with Cloudflare error 1101. The existing private snapshot therefore still lacks the `purchases` records required for markers until Worker KV writes are available again.
+
+# 2026-08-22 MACD and time zoom
+- Shift+wheel changes only the SVG time-axis density, retains the user's right-edge distance, and persists the selected zoom locally. The MACD panel was enlarged without introducing vertical chart scrolling.
