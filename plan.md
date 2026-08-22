@@ -116,3 +116,7 @@
 # Bollinger bands
 
 1. Add 20-period, 2-standard-deviation bands to the price pane. Verify: visible bands expand the price scale and show in the legend.
+
+# Hover price tooltip
+
+1. Show hovered candle date and close price near the pointer. Verify: tooltip moves with the dotted guide and hides on exit.

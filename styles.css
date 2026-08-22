@@ -22,3 +22,4 @@ main { display:grid; gap:22px; padding:28px 0 64px; } main>section { position:re
 .purchase-event { stroke:#f4cb74aa; stroke-width:1.2; stroke-dasharray:4 4; } .purchase-dot { fill:#f4cb74; stroke:#fff0bd; stroke-width:2; } .purchase-label { fill:#fff0bd; font:700 12px Pretendard Variable,Pretendard,sans-serif; }
 .chart-crosshair { stroke:#dcecff9c; stroke-width:1; stroke-dasharray:4 5; pointer-events:none; }
 .bollinger-band { fill:#8db8ff18; } .bollinger-line { fill:none; stroke:#8db8ff99; stroke-width:1.2; stroke-dasharray:4 3; } #analysis-chart-legend .bollinger { color:#8db8ff; }
+#analysis-chart-tooltip { position:absolute; z-index:3; border:1px solid #aeeedb66; border-radius:7px; background:#07101cf2; color:#eaf7ff; padding:4px 7px; pointer-events:none; font:700 12px Pretendard Variable,Pretendard,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }

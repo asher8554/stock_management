@@ -158,3 +158,6 @@
 
 # Bollinger bands
 - [x] Render 20-period, 2-standard-deviation bands behind price candles.
+
+# Hover price tooltip
+- [x] Show the nearest candle date and close price next to the pointer.

@@ -170,3 +170,6 @@
 
 # 2026-08-22 Bollinger bands
 - The price pane now renders standard BB(20,2) as a pale blue fill with dotted upper and lower boundaries. Values in the visible viewport are included in auto-scale.
+
+# 2026-08-22 hover price tooltip
+- The hover guide now shows the nearest candle's date and closing price in a pointer-following tooltip. It uses the selected holding currency and remains outside mouse hit testing.
