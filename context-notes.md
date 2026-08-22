@@ -83,3 +83,6 @@
 - `analysis.html` now loads the public Advanced Chart widget with both toolbars enabled. `analysis.mjs` stores only `symbol`, `interval`, and `watchlist` under `stock-management-analysis-v1` and rebuilds the iframe after page-owned changes.
 - Deployment verification passed for `analysis.html` and `analysis.mjs`; the public TradingView widget script returned HTTP 200.
 - TradingView's widget returned its licensing-only-symbol message for `KRX:237350`. The analysis default now uses `NASDAQ:AAPL`; the old saved KODEX symbol is normalized away and receives an inline explanation if entered again.
+
+# 2026-08-22 target bar alignment
+- The previous target-bar center rule lost the cascade to the shared actual-allocation selector. The target bar now uses an ID-scoped selector so each percentage remains centered inside its own segment.

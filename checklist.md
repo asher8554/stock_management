@@ -81,3 +81,6 @@
 # TradingView widget compatibility
 - [x] Replace the unavailable KODEX 코스피100 default with a widget-supported symbol.
 - [x] Reset the previously saved unavailable default and show a clear inline message.
+
+# Target bar alignment
+- [x] Give target-bar segments a selector that overrides actual-allocation alignment.
