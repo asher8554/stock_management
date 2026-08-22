@@ -133,3 +133,7 @@
 
 # Unit-switch price scaling
 - [x] Calculate price scale from the target horizontal position after a unit change.
+
+# Price axis and MACD
+- [x] Show current price and average purchase price on the fixed right price axis.
+- [x] Add a MACD 12·26·9 panel below RSI.

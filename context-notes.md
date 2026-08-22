@@ -145,3 +145,6 @@
 
 # 2026-08-22 unit-switch price scaling
 - The price axis was calculated from the outgoing chart's scroll position and updated only after manual horizontal scrolling. The chart now calculates its target retained position before rendering and uses it for the initial visible-window scale.
+
+# 2026-08-22 price axis and MACD
+- Current price and average purchase price belong on the fixed right price axis, not below the horizontally scrollable SVG. The analysis chart now reserves right-axis space for both values and adds a MACD 12·26·9 panel below RSI.
