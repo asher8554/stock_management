@@ -130,3 +130,4 @@ render();
 if (callbackToken) loadPrivatePortfolio();
 loadMarket();
 setInterval(loadMarket, 60_000);
+if (sessionStorage.getItem(sessionKey)) setInterval(loadPrivatePortfolio, 60_000);

@@ -132,22 +132,10 @@ export default {
       await env.PORTFOLIO_CACHE.delete("market:latest");
       return json({ ok: true }, 200, headers);
     }
-    if (request.method === "POST" && pathname === "/v1/realtime") {
-      if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
-      const snapshot = await request.json().catch(() => null);
-      if (!snapshot?.updatedAt || !snapshot?.symbols || typeof snapshot.symbols !== "object") return json({ error: "invalid_realtime_snapshot" }, 400, headers);
-      await env.PORTFOLIO_CACHE.put("realtime:latest", JSON.stringify(snapshot));
-      return json({ ok: true }, 200, headers);
-    }
     if (request.method === "GET" && pathname === "/v1/portfolio") {
       if (!await hasSession(request, env.GITHUB_SESSION_SECRET)) return json({ error: "forbidden" }, 403, headers);
       const snapshot = await env.PORTFOLIO_CACHE.get("latest");
       return snapshot ? new Response(snapshot, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } }) : json({ error: "not_synced" }, 503, headers);
-    }
-    if (request.method === "GET" && pathname === "/v1/realtime") {
-      if (!await hasSession(request, env.GITHUB_SESSION_SECRET)) return json({ error: "forbidden" }, 403, headers);
-      const snapshot = await env.PORTFOLIO_CACHE.get("realtime:latest");
-      return snapshot ? new Response(snapshot, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } }) : json({ error: "not_collected" }, 503, headers);
     }
     return json({ error: "not_found" }, 404, headers);
   },

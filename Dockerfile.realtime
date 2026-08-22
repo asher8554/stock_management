@@ -1,7 +1,0 @@
-# KIS 실시간 체결 수집기를 실행하는 Synology Docker 이미지다.
-FROM python:3.13-alpine
-WORKDIR /app
-COPY requirements-realtime.txt .
-RUN pip install --no-cache-dir -r requirements-realtime.txt
-COPY realtime_collector.py .
-CMD ["python", "-u", "realtime_collector.py"]
