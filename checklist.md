@@ -130,3 +130,6 @@
 # Purchase-history markers
 - [x] Collect completed KIS buy executions for each active holding.
 - [x] Render each execution date and price as a chart marker.
+
+# Unit-switch price scaling
+- [x] Calculate price scale from the target horizontal position after a unit change.

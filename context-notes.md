@@ -142,3 +142,6 @@
 
 # 2026-08-22 purchase-history markers
 - The KIS balance response has no execution dates. `sync_portfolio.py` now reads completed buy executions through KIS `inquire-daily-ccld` for each active domestic holding and stores date, execution price, and quantity in the private snapshot. The native chart marks that date and price with a gold `매수` marker, including its price in the visible-window scale.
+
+# 2026-08-22 unit-switch price scaling
+- The price axis was calculated from the outgoing chart's scroll position and updated only after manual horizontal scrolling. The chart now calculates its target retained position before rendering and uses it for the initial visible-window scale.
