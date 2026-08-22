@@ -92,6 +92,33 @@ def kis_daily_bars(token, symbol):
     return [{"time": row.get("stck_bsop_date"), "open": row.get("stck_oprc"), "high": row.get("stck_hgpr"), "low": row.get("stck_lwpr"), "close": row.get("stck_clpr"), "volume": row.get("acml_vol")} for _, row in sorted(unique.items())]
 
 
+def kis_intraday_bars(token, symbol):
+    rows = {}
+    for offset in range(366):
+        day = (datetime.now().astimezone().date() - timedelta(days=offset)).strftime("%Y%m%d")
+        cursor = "153000"
+        for _ in range(10):
+            query = urlencode({"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": symbol, "FID_INPUT_HOUR_1": cursor, "FID_INPUT_DATE_1": day, "FID_PW_DATA_INCU_YN": "Y", "FID_FAKE_TICK_INCU_YN": ""})
+            data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": "FHKST03010230"})
+            if data.get("rt_cd") != "0":
+                raise RuntimeError(data.get("msg1", "한국투자증권 분봉 조회 실패"))
+            page = data.get("output2", [])
+            if not page:
+                break
+            for row in page:
+                moment = row.get("stck_cntg_hour", "")
+                price = row.get("stck_prpr")
+                if len(moment) == 6 and price:
+                    rows[f"{day}T{moment}"] = {"time": f"{day}T{moment}", "open": price, "high": price, "low": price, "close": price, "volume": row.get("cntg_vol", 0)}
+            earliest = min((row.get("stck_cntg_hour", "") for row in page), default="")
+            if len(page) < 120 or earliest <= "090000":
+                break
+            cursor = earliest
+            time.sleep(.15)
+        time.sleep(.15)
+    return [rows[key] for key in sorted(rows)]
+
+
 def kis_account():
     token = request_json("https://openapi.koreainvestment.com:9443/oauth2/tokenP", method="POST", headers={
         "content-type": "application/json",
@@ -107,7 +134,7 @@ def kis_account():
     snapshot = kis_snapshot(data)
     for item in snapshot["items"]:
         item["bars"] = kis_daily_bars(token, item["symbol"])
-    return snapshot
+    return snapshot, token
 
 
 def krx_metric(url, name_field, name, value_field, unit):
@@ -130,15 +157,20 @@ def krx_snapshot():
 def main():
     load_env()
     accounts = []
+    intraday = []
     if os.environ.get("TOSS_CLIENT_ID") or os.environ.get("TOSS_CLIENT_KEY"):
         accounts.append(toss_account())
     if os.environ.get("KIS_APP_KEY"):
-        accounts.append(kis_account())
+        account, token = kis_account()
+        accounts.append(account)
+        intraday = [{"symbol": item["symbol"], "bars": kis_intraday_bars(token, item["symbol"])} for item in account["items"]]
     if not accounts:
         raise RuntimeError("TOSS_CLIENT_ID 또는 KIS_APP_KEY 환경변수가 필요합니다.")
     snapshot = {"updatedAt": datetime.now(timezone.utc).isoformat(), "accounts": accounts}
     url = os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/snapshot"
     request_json(url, method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=snapshot)
+    for item in intraday:
+        request_json(os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/intraday", method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=item)
     request_json(os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/market/krx", method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=krx_snapshot())
 
 

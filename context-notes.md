@@ -118,3 +118,6 @@
 # 2026-08-22 daily moving averages on higher units
 - Weekly and monthly candles should stay aggregated, but their MA lines must be sampled from daily 20/60/120 values, not recalculated as 20/60/120 weeks or months.
 - The dedicated weekly sampling test passes with the final 20-day value carried to the latest weekly candle.
+
+# 2026-08-22 historical minute and hour charts
+- Tick and second charts remain live-only. A private Worker endpoint stores backfilled KIS minute bars separately; the browser loads them only when the minute or hour unit is selected.

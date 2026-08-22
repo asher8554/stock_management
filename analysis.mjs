@@ -67,8 +67,8 @@ export function timeLabel(time, unit) {
   return unit === "월" ? `${value.slice(4, 6)}월` : `${value.slice(4, 6)}/${value.slice(6, 8)}`;
 }
 
-function barsForUnit(daily, ticks, unit) {
-  return aggregateBars(["틱", "초", "분", "시"].includes(unit) ? ticks : daily, unit);
+function barsForUnit(daily, ticks, intraday, unit) {
+  return aggregateBars(["분", "시"].includes(unit) && intraday.length ? intraday : ["틱", "초", "분", "시"].includes(unit) ? ticks : daily, unit);
 }
 
 function rangeBars(bars, range, unit) {
@@ -92,8 +92,8 @@ function linePath(values, x, y) {
   return values.map((value, index) => { if (value === null || !Number.isFinite(value)) { started = false; return ""; } const command = started ? "L" : "M"; started = true; return `${command}${x(index).toFixed(1)} ${y(value).toFixed(1)}`; }).join(" ");
 }
 
-function renderChart(host, item, ticks, unit, range) {
-  const allBars = barsForUnit(item.bars, ticks, unit); const bars = rangeBars(allBars, range, unit);
+function renderChart(host, item, ticks, intraday, unit, range) {
+  const allBars = barsForUnit(item.bars, ticks, intraday, unit); const bars = rangeBars(allBars, range, unit);
   if (!bars.length) { host.textContent = ["틱", "초", "분", "시"].includes(unit) ? "실시간 체결 데이터가 아직 없습니다. 장중 체결 후 표시됩니다." : "일별 데이터가 없습니다. 다음 동기화 뒤 다시 확인하세요."; return; }
   const start = Math.max(0, allBars.length - bars.length); const width = 1080; const priceTop = 28; const priceBottom = 310; const volumeTop = 340; const volumeBottom = 415; const rsiTop = 455; const rsiBottom = 535; const left = 58; const right = 1025;
   const lows = bars.map((bar) => bar.low); const highs = bars.map((bar) => bar.high); const min = Math.min(...lows, number(item.averagePurchasePrice), number(item.lastPrice)); const max = Math.max(...highs, number(item.averagePurchasePrice), number(item.lastPrice)); const padding = Math.max((max - min) * 0.08, 1);
@@ -113,13 +113,13 @@ async function init() {
   if (!token) { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; host.textContent = "메인 페이지에서 GitHub 로그인 후 다시 열어주세요."; return; }
   let selectedSymbol = localStorage.getItem(ANALYSIS_STORAGE_KEY) || ""; let selectedRange = localStorage.getItem(ANALYSIS_RANGE_STORAGE_KEY) || "전체"; let selectedUnit = localStorage.getItem(ANALYSIS_UNIT_STORAGE_KEY) || "일";
   if (!Object.hasOwn(ANALYSIS_RANGES, selectedRange)) selectedRange = "전체"; if (!ANALYSIS_UNITS.includes(selectedUnit)) selectedUnit = "일";
-  let items = []; let realtime = {};
+  let items = []; let realtime = {}; let intraday = {};
   const render = () => {
     const selected = items.find((item) => item.symbol === selectedSymbol) || items[0]; if (!selected) return;
     holdings.replaceChildren(...items.map((item) => { const button = document.createElement("button"); button.type = "button"; button.className = item.symbol === selected.symbol ? "selected" : ""; button.textContent = `${item.name} (${item.symbol})`; button.onclick = () => { selectedSymbol = item.symbol; localStorage.setItem(ANALYSIS_STORAGE_KEY, selectedSymbol); render(); }; return button; }));
-    units.replaceChildren(...ANALYSIS_UNITS.map((unit) => { const button = document.createElement("button"); button.type = "button"; button.className = unit === selectedUnit ? "selected" : ""; button.textContent = unit; button.onclick = () => { selectedUnit = unit; localStorage.setItem(ANALYSIS_UNIT_STORAGE_KEY, unit); render(); }; return button; }));
+    units.replaceChildren(...ANALYSIS_UNITS.map((unit) => { const button = document.createElement("button"); button.type = "button"; button.className = unit === selectedUnit ? "selected" : ""; button.textContent = unit; button.onclick = async () => { selectedUnit = unit; localStorage.setItem(ANALYSIS_UNIT_STORAGE_KEY, unit); if (["분", "시"].includes(unit) && !Object.hasOwn(intraday, selected.symbol)) { const response = await fetch(`${API_BASE}/v1/intraday?symbol=${encodeURIComponent(selected.symbol)}`, { headers: { authorization: `Bearer ${token}` } }); intraday[selected.symbol] = response.ok ? (await response.json()).bars || [] : []; } render(); }; return button; }));
     ranges.replaceChildren(...Object.keys(ANALYSIS_RANGES).map((range) => { const button = document.createElement("button"); button.type = "button"; button.className = range === selectedRange ? "selected" : ""; button.textContent = range; button.onclick = () => { selectedRange = range; localStorage.setItem(ANALYSIS_RANGE_STORAGE_KEY, range); render(); }; return button; }));
-    renderChart(host, selected, realtime[selected.symbol] || [], selectedUnit, selectedRange);
+    renderChart(host, selected, realtime[selected.symbol] || [], intraday[selected.symbol] || [], selectedUnit, selectedRange);
   };
   const load = async () => {
     const portfolio = await fetch(`${API_BASE}/v1/portfolio`, { headers: { authorization: `Bearer ${token}` } });

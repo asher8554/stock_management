@@ -107,3 +107,6 @@
 
 # Daily moving averages on higher units
 - [x] Keep weekly and monthly candles while using 20/60/120-day moving averages.
+
+# Historical minute and hour charts
+- [ ] Store up to one year of KIS minute bars privately and use them for minute/hour charts.
