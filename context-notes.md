@@ -160,3 +160,6 @@
 
 # 2026-08-22 private portfolio location
 - The public dashboard no longer renders any private account section. GitHub OAuth still returns to the existing Pages root, which saves the session token then immediately redirects to `analysis.html`; analysis renders the account summary, holdings, and actual allocation from the authenticated snapshot.
+
+# 2026-08-22 analysis entry
+- Five header-mark clicks now navigate to analysis first. An existing session opens the private account immediately; without one, `analysis.html?login=1` starts the existing GitHub OAuth flow automatically.

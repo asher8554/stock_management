@@ -30,7 +30,7 @@ mark.addEventListener("click", () => {
   clearTimeout(clickReset);
   if (clicks === 5) {
     clicks = 0;
-    location.assign(loginUrl);
+    location.assign(sessionStorage.getItem(sessionKey) ? "analysis.html" : "analysis.html?login=1");
     return;
   }
   clickReset = setTimeout(() => { clicks = 0; }, 3000);

@@ -143,7 +143,7 @@ function renderChart(host, item, unit, range, zoom) {
 
 async function init() {
   const holdings = document.getElementById("analysis-holdings"); const host = document.getElementById("analysis-chart-host"); const ranges = document.getElementById("analysis-ranges"); const units = document.getElementById("analysis-units"); const token = sessionStorage.getItem("github-session");
-  if (!token) { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; host.textContent = "메인 페이지에서 GitHub 로그인 후 다시 열어주세요."; return; }
+  if (!token) { if (new URLSearchParams(location.search).has("login")) location.replace(`${API_BASE}/auth/github`); else { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; host.textContent = "메인 페이지에서 GitHub 로그인 후 다시 열어주세요."; } return; }
   let selectedSymbol = localStorage.getItem(ANALYSIS_STORAGE_KEY) || ""; let selectedRange = localStorage.getItem(ANALYSIS_RANGE_STORAGE_KEY) || "전체"; let selectedUnit = localStorage.getItem(ANALYSIS_UNIT_STORAGE_KEY) || "일";
   if (!Object.hasOwn(ANALYSIS_RANGES, selectedRange)) selectedRange = "전체"; if (!ANALYSIS_UNITS.includes(selectedUnit)) selectedUnit = "일";
   let items = []; let chartZoom = Math.min(3, Math.max(.35, Number(localStorage.getItem(ANALYSIS_ZOOM_STORAGE_KEY)) || 1)); let rendering = false; let renderedScrollLeft = -1; let scrollFrame;

@@ -149,3 +149,6 @@
 # Private portfolio location
 - [x] Move private account summary, holdings, and actual allocation to analysis.
 - [x] Redirect completed GitHub login to the analysis page.
+
+# Analysis entry
+- [x] Open analysis directly after five header-mark clicks and start GitHub login there when needed.
