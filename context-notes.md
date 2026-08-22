@@ -103,3 +103,6 @@
 
 # 2026-08-22 local sync removal
 - The user removed the Windows `StockManagementPortfolioSync` task and `run_sync_portfolio.cmd`. Synology Docker remains the only active collection process.
+
+# 2026-08-22 chart unit rendering correction
+- Daily charts appeared normal while non-daily selections overlapped because SVG candle and volume widths were fixed at 4px and 6px regardless of visible bar count. Width must follow available horizontal spacing.

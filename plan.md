@@ -61,3 +61,7 @@
 1. Read authenticated real-time ticks with existing Worker route. Verify: missing stream leaves daily chart usable.
 2. Aggregate selected unit in browser and calculate 20/60/120 over resulting bars. Verify: unit change changes the MA source.
 3. Render compact time labels along x-axis. Verify: timestamps remain readable on all units.
+
+# Chart unit rendering correction
+
+1. Scale candle and volume widths to the visible bar count. Verify: tick and long-range charts no longer overlap into a solid block.
