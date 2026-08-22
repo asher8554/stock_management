@@ -117,3 +117,6 @@
 # Scrollable technical chart
 - [x] Keep the chart viewport stable and scroll full history horizontally.
 - [x] Preserve the viewed position during automatic refresh.
+
+# Fixed chart references
+- [x] Keep price labels and moving-average colors visible during horizontal scrolling.

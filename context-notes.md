@@ -130,3 +130,6 @@
 
 # 2026-08-22 scrollable technical chart
 - The chart keeps the existing approximately 120-candle viewport. Wider histories increase the SVG width and use the existing horizontal overflow container; automatic refresh preserves the viewed distance from the latest candle.
+
+# 2026-08-22 fixed chart references
+- The price axis and moving-average legend are sibling overlays of the scrolling SVG. Price levels stay on the right, and the 20/60/120 colors stay at the upper left for minute and hour views.

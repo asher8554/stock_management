@@ -91,3 +91,7 @@
 
 1. Preserve candle size and extend the SVG width by bar count. Verify: overflowing history scrolls horizontally without shrinking candles.
 2. Preserve the viewer's horizontal position on automatic refresh. Verify: live refresh does not jump the viewed period.
+
+# Fixed chart references
+
+1. Keep the price axis and moving-average legend outside the horizontal scroll layer. Verify: both remain visible while viewing historical bars.
