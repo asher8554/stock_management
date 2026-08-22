@@ -152,3 +152,7 @@
 # Portfolio summary cards
 
 1. Replace the two return cards with five compact holding-summary cards. Verify: cost basis, market value, profit, cumulative return, and annual return appear together.
+
+# Portfolio summary row
+
+1. Use the full private-account width for the five summary cards. Verify: desktop shows all cards on one row.

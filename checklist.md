@@ -186,3 +186,7 @@
 # Portfolio summary cards
 - [x] Replace two return cards with cost, value, profit, cumulative return, and annual return cards.
 - [x] Deploy and verify static bundle.
+
+# Portfolio summary row
+- [x] Place five desktop summary cards on one horizontal row.
+- [ ] Test, deploy, and verify static bundle.

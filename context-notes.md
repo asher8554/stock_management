@@ -197,3 +197,6 @@
 
 # 2026-08-22 portfolio summary cards
 - The account header now summarizes held-stock cost basis, current market value, profit amount, cumulative return, and annual return as five compact cards. Cash stays excluded because no deposit-history baseline exists.
+
+# 2026-08-22 portfolio summary row
+- Five portfolio summary cards use the full account-section width on desktop, while narrow screens retain a two-column fallback.
