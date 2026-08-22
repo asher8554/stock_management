@@ -188,3 +188,6 @@
 
 # 2026-08-22 portfolio returns
 - The private account header now has cumulative return based on held-stock cost basis and annual return based on the latest 252 trading days. Cash has no deposit-history baseline, so it is deliberately excluded from the cumulative-return denominator.
+
+# 2026-08-22 chart control row
+- Unit controls now occupy the left side of the chart control row and period controls the right side. Narrow screens keep controls left aligned on separate rows.

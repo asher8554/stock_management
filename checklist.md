@@ -176,3 +176,6 @@
 
 # Portfolio returns
 - [x] Show cumulative holding return and one-year price return in the private account header.
+
+# Chart control row
+- [x] Align unit and range controls on one desktop row.

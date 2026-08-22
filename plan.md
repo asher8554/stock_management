@@ -140,3 +140,7 @@
 # Portfolio returns
 
 1. Show holding cost-basis cumulative return and latest 252-trading-day return in the private account header. Verify: unavailable one-year history displays a dash.
+
+# Chart control row
+
+1. Place unit controls and range controls on one desktop row. Verify: units are left aligned and ranges right aligned.
