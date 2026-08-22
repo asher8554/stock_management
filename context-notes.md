@@ -206,3 +206,6 @@
 
 # 2026-08-22 account-wide summary totals
 - Account cost basis and current value now include cash plus held stocks. Annual return remains a holding-price measure because account-level cash-flow history is unavailable.
+
+# 2026-08-22 account annual return integrity
+- The annual-return card no longer reuses stock-price history. It shows a dash until dated account deposits, withdrawals, and transactions are available for an account-level calculation.

@@ -198,3 +198,7 @@
 # Account-wide summary totals
 - [x] Include cash and stocks in account cost basis, value, profit, and cumulative return.
 - [x] Test, deploy, and verify static bundle.
+
+# Account annual return integrity
+- [x] Remove non-account annual return and show the required account-history dependency.
+- [ ] Test, deploy, and verify static bundle.

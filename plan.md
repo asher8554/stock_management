@@ -164,3 +164,7 @@
 # Account-wide summary totals
 
 1. Include cash with held stocks in cost basis, value, profit, and cumulative return. Verify: each total represents the full account.
+
+# Account annual return integrity
+
+1. Remove the stock-price annual return from the account summary. Verify: annual return stays unavailable until account cash flows are present.
