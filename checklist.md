@@ -179,3 +179,6 @@
 
 # Chart control row
 - [x] Align unit and range controls on one desktop row.
+
+# Price-label collision spacing
+- [x] Separate overlapping fixed price labels by at least 22px.

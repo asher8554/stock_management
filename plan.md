@@ -144,3 +144,7 @@
 # Chart control row
 
 1. Place unit controls and range controls on one desktop row. Verify: units are left aligned and ranges right aligned.
+
+# Price-label collision spacing
+
+1. Keep adjacent fixed price labels at least 22px apart. Verify: current and average labels remain readable when prices are close.

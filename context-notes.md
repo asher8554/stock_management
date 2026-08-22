@@ -191,3 +191,6 @@
 
 # 2026-08-22 chart control row
 - Unit controls now occupy the left side of the chart control row and period controls the right side. Narrow screens keep controls left aligned on separate rows.
+
+# 2026-08-22 price-label collision spacing
+- Fixed price labels are sorted by marker height and placed with a 22px minimum gap. Their colored dotted marker lines remain at the exact price heights.
