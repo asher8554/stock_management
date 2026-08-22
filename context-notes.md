@@ -185,3 +185,6 @@
 
 # 2026-08-22 target-cash purchase runway
 - Purchase days now reserve the saved target cash percentage of total account value before applying `floor(spendable cash / current price)`. The active 30% target yields 19 days with the current snapshot values.
+
+# 2026-08-22 portfolio returns
+- The private account header now has cumulative return based on held-stock cost basis and annual return based on the latest 252 trading days. Cash has no deposit-history baseline, so it is deliberately excluded from the cumulative-return denominator.

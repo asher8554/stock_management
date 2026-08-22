@@ -173,3 +173,6 @@
 
 # Target-cash purchase runway
 - [x] Exclude the configured target cash reserve from daily purchase days.
+
+# Portfolio returns
+- [x] Show cumulative holding return and one-year price return in the private account header.

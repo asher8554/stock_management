@@ -32,11 +32,26 @@ function renderHoldings(snapshot) {
   table.append(body); holdings.append(title, table); holdings.hidden = false;
 }
 
+export function cumulativeReturn(rows) {
+  const totals = rows.reduce((sum, row) => ({ cost: sum.cost + number(row.averagePurchasePrice) * number(row.quantity), value: sum.value + number(row.marketValue) }), { cost: 0, value: 0 });
+  return totals.cost > 0 && Number.isFinite(totals.value) ? Number(((totals.value / totals.cost - 1) * 100).toFixed(2)) : null;
+}
+
+function renderPortfolioPerformance(snapshot) {
+  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const item = snapshot.accounts.flatMap((account) => account.items || []).find((holding) => Array.isArray(holding.bars) && holding.bars.length); const values = [{ label: "누적 수익률", value: cumulativeReturn(rows), hint: "보유주식 매입원가 기준" }, { label: "연간 수익률", value: item ? annualReturn(item.bars) : null, hint: "최근 1년 종가 기준" }];
+  container.replaceChildren(...values.map(({ label, value, hint }) => { const metric = document.createElement("article"); metric.className = Number(value) < 0 ? "loss" : "gain"; const title = document.createElement("p"); title.textContent = label; const result = document.createElement("strong"); result.textContent = Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value}%` : "-"; const note = document.createElement("small"); note.textContent = hint; metric.append(title, result, note); return metric; })); container.hidden = false;
+}
+
 export function normalizeBars(bars) {
   return (Array.isArray(bars) ? bars : []).map((bar) => {
     const close = number(bar.close ?? bar.price);
     return { time: String(bar.time ?? ""), open: number(bar.open ?? close), high: number(bar.high ?? close), low: number(bar.low ?? close), close, volume: number(bar.volume) || 0 };
   }).filter((bar) => /^\d{8}(?:T\d{4,6})?$/.test(bar.time) && [bar.open, bar.high, bar.low, bar.close].every(Number.isFinite)).sort((left, right) => left.time.localeCompare(right.time));
+}
+
+export function annualReturn(bars, tradingDays = 252) {
+  const normalized = normalizeBars(bars); const base = normalized.at(-tradingDays - 1); const last = normalized.at(-1);
+  return base && last && base.close > 0 ? Number(((last.close / base.close - 1) * 100).toFixed(2)) : null;
 }
 
 export function sma(bars, period) {
@@ -181,7 +196,7 @@ async function init() {
     const portfolio = await fetch(`${API_BASE}/v1/portfolio`, { headers: { authorization: `Bearer ${token}` } });
     if (!portfolio.ok) { status.textContent = portfolio.status === 403 ? "GitHub 로그인이 필요합니다." : "아직 동기화 데이터가 없습니다."; throw new Error(`보유 정보 요청 실패. HTTP ${portfolio.status}`); }
     const snapshot = await portfolio.json(); if (!Array.isArray(snapshot.accounts)) throw new Error("보유 정보 응답 형식이 올바르지 않습니다.");
-    renderActualAllocation(snapshot); renderHoldings(snapshot); status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
+    renderActualAllocation(snapshot); renderHoldings(snapshot); renderPortfolioPerformance(snapshot); status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
     items = snapshot.accounts.flatMap((account) => (Array.isArray(account.items) ? account.items : []).map((item) => ({ ...item, provider: account.provider }))).filter((item) => normalizeBars(item.bars).length);
     if (!items.length) { holdings.textContent = "일별 데이터가 없습니다."; host.textContent = "보유종목 일별 데이터가 아직 동기화되지 않았습니다."; return; }
     render();
