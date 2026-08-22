@@ -168,3 +168,7 @@
 # Account annual return integrity
 
 1. Remove the stock-price annual return from the account summary. Verify: annual return stays unavailable until account cash flows are present.
+
+# Account performance baseline
+
+1. Save the current cash plus stock-cost total as a browser baseline. Verify: future cumulative and annualized returns use that fixed baseline.

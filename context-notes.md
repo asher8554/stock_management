@@ -209,3 +209,6 @@
 
 # 2026-08-22 account annual return integrity
 - The annual-return card no longer reuses stock-price history. It shows a dash until dated account deposits, withdrawals, and transactions are available for an account-level calculation.
+
+# 2026-08-22 account performance baseline
+- The current cash plus held-stock cost is saved once in browser storage as the account baseline. Cumulative return uses that fixed amount; annualized return begins after 30 elapsed days to avoid one-day annualization distortion.

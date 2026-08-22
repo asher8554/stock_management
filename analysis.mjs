@@ -4,6 +4,7 @@ export const ANALYSIS_STORAGE_KEY = "stock-management-analysis-v2";
 export const ANALYSIS_RANGE_STORAGE_KEY = "stock-management-analysis-range-v1";
 export const ANALYSIS_UNIT_STORAGE_KEY = "stock-management-analysis-unit-v1";
 export const ANALYSIS_ZOOM_STORAGE_KEY = "stock-management-analysis-zoom-v1";
+export const ACCOUNT_PERFORMANCE_BASELINE_KEY = "stock-management-account-performance-baseline-v1";
 export const ANALYSIS_RANGES = Object.freeze({ "1D": 1, "1W": 5, "1M": 22, "1Y": 252, "5Y": 1260, "전체": Infinity });
 export const ANALYSIS_UNITS = Object.freeze(["일", "주", "월"]);
 const API_BASE = "https://stock-management-private-api.household-account-asher.workers.dev";
@@ -46,8 +47,21 @@ export function accountTotals(snapshot) {
   return { cost: cash + holdings.cost, value: cash + holdings.value };
 }
 
+export function accountPerformance(baseline, totals, now = Date.now()) {
+  const cost = number(baseline?.cost); const elapsedDays = (new Date(now).getTime() - new Date(baseline?.capturedAt).getTime()) / 86_400_000;
+  const cumulative = cost > 0 && Number.isFinite(totals.value) ? Number(((totals.value / cost - 1) * 100).toFixed(2)) : null;
+  const annualized = cumulative !== null && elapsedDays >= 30 ? Number((((totals.value / cost) ** (365 / elapsedDays) - 1) * 100).toFixed(2)) : null;
+  return { cumulative, annualized, elapsedDays: Math.max(0, Math.floor(elapsedDays)) };
+}
+
+function savedAccountBaseline(snapshot, totals) {
+  const fallback = { cost: totals.cost, capturedAt: snapshot.updatedAt || new Date().toISOString() };
+  try { const saved = JSON.parse(localStorage.getItem(ACCOUNT_PERFORMANCE_BASELINE_KEY) || "null"); if (number(saved?.cost) > 0 && Number.isFinite(new Date(saved.capturedAt).getTime())) return saved; localStorage.setItem(ACCOUNT_PERFORMANCE_BASELINE_KEY, JSON.stringify(fallback)); } catch { /* 브라우저 저장소를 쓸 수 없으면 이번 동기화 값을 기준으로 사용한다. */ }
+  return fallback;
+}
+
 function renderPortfolioPerformance(snapshot) {
-  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const totals = accountTotals(snapshot); const currency = rows[0]?.currency || "KRW"; const cumulative = totals.cost > 0 ? Number(((totals.value / totals.cost - 1) * 100).toFixed(2)) : null; const values = [{ label: "매입 원금", value: money(totals.cost, currency), hint: "현금 + 주식 원금", tone: "neutral" }, { label: "현재 평가액", value: money(totals.value, currency), hint: "현금 + 주식 평가액", tone: "neutral" }, { label: "수익금액", value: signedMoney(totals.value - totals.cost, currency), hint: "평가액 − 원금", tone: totals.value - totals.cost < 0 ? "loss" : "gain" }, { label: "누적 수익률", value: cumulative, hint: "계좌 전체 기준", tone: cumulative < 0 ? "loss" : "gain", percent: true }, { label: "연간 수익률", value: null, hint: "계좌 입출금 이력 필요", tone: "neutral", percent: true }];
+  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const totals = accountTotals(snapshot); const baseline = savedAccountBaseline(snapshot, totals); const performance = accountPerformance(baseline, totals); const currency = rows[0]?.currency || "KRW"; const values = [{ label: "기준 원금", value: money(baseline.cost, currency), hint: "기준일 현금 + 주식 원금", tone: "neutral" }, { label: "현재 평가액", value: money(totals.value, currency), hint: "현금 + 주식 평가액", tone: "neutral" }, { label: "수익금액", value: signedMoney(totals.value - baseline.cost, currency), hint: "평가액 − 기준 원금", tone: totals.value - baseline.cost < 0 ? "loss" : "gain" }, { label: "누적 수익률", value: performance.cumulative, hint: "기준일 이후 계좌 기준", tone: performance.cumulative < 0 ? "loss" : "gain", percent: true }, { label: "연환산 수익률", value: performance.annualized, hint: performance.annualized === null ? "기준일 30일 후 산출" : `기준일 이후 ${performance.elapsedDays}일`, tone: performance.annualized < 0 ? "loss" : "gain", percent: true }];
   container.replaceChildren(...values.map(({ label, value, hint, tone, percent }) => { const metric = document.createElement("article"); metric.className = tone; const title = document.createElement("p"); title.textContent = label; const result = document.createElement("strong"); result.textContent = percent ? (Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value}%` : "-") : value; const note = document.createElement("small"); note.textContent = hint; metric.append(title, result, note); return metric; })); container.hidden = false;
 }
 

@@ -202,3 +202,7 @@
 # Account annual return integrity
 - [x] Remove non-account annual return and show the required account-history dependency.
 - [x] Test, deploy, and verify static bundle.
+
+# Account performance baseline
+- [x] Save current cash plus stock cost as the future account-return baseline.
+- [ ] Test, deploy, and verify static bundle.
