@@ -47,6 +47,6 @@
 
 1. Replace both header marks with the supplied portfolio image and center all target-bar labels. Verify: shared image asset is used by both headers and each target segment centers its percentage.
 
-# TradingView analysis page
+# Holding analysis page
 
-1. Add a public Advanced Chart analysis route with local symbol, interval, and watchlist state. Verify: widget controls and shared navigation render without exposing private data.
+1. Upload KIS holding daily bars and render average purchase price, current price, moving averages, volume, and RSI privately. Verify: the analysis route has no external chart dependency.

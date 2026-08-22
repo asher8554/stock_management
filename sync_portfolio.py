@@ -68,6 +68,15 @@ def kis_snapshot(data):
     } for item in data["output1"] if item.get("hldg_qty") != "0"], "marketValue": summary.get("tot_evlu_amt"), "cash": summary.get("dnca_tot_amt"), "stockValue": summary.get("scts_evlu_amt")}
 
 
+def kis_daily_bars(token, symbol):
+    end = datetime.now().astimezone().date()
+    query = urlencode({"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": symbol, "FID_INPUT_DATE_1": (end - timedelta(days=180)).strftime("%Y%m%d"), "FID_INPUT_DATE_2": end.strftime("%Y%m%d"), "FID_PERIOD_DIV_CODE": "D", "FID_ORG_ADJ_PRC": "0"})
+    data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": "FHKST03010100"})
+    if data.get("rt_cd") != "0":
+        raise RuntimeError(data.get("msg1", "한국투자증권 일봉 조회 실패"))
+    return [{"time": row.get("stck_bsop_date"), "open": row.get("stck_oprc"), "high": row.get("stck_hgpr"), "low": row.get("stck_lwpr"), "close": row.get("stck_clpr"), "volume": row.get("acml_vol")} for row in data.get("output2", [])]
+
+
 def kis_account():
     token = request_json("https://openapi.koreainvestment.com:9443/oauth2/tokenP", method="POST", headers={
         "content-type": "application/json",
@@ -80,7 +89,10 @@ def kis_account():
     })
     if data.get("rt_cd") != "0":
         raise RuntimeError(data.get("msg1", "한국투자증권 잔고 조회 실패"))
-    return kis_snapshot(data)
+    snapshot = kis_snapshot(data)
+    for item in snapshot["items"]:
+        item["bars"] = kis_daily_bars(token, item["symbol"])
+    return snapshot
 
 
 def krx_metric(url, name_field, name, value_field, unit):

@@ -1,12 +1,12 @@
-<!-- TradingView 고급 차트와 로컬 분석 설정을 제공하는 공개 페이지다. -->
+<!-- 보유종목의 KIS 일봉과 기술지표를 표시하는 비공개 분석 페이지다. -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="TradingView 기반 종목 분석">
+  <meta name="description" content="보유종목 기술 분석">
   <title>포트폴리오 분석</title>
-  <link rel="stylesheet" href="styles.css?v=20260822-5">
+  <link rel="stylesheet" href="styles.css?v=20260822-6">
 </head>
 <body>
   <header>
@@ -16,21 +16,11 @@
   </header>
   <main class="analysis-main">
     <section class="analysis-controls" aria-labelledby="analysis-title">
-      <div><p class="eyebrow">TRADINGVIEW ANALYSIS</p><h2 id="analysis-title">차트 분석</h2><p class="hint">종목·주기·관심종목은 이 브라우저에 저장됩니다.</p></div>
-      <form id="analysis-form" novalidate>
-        <label>TradingView 종목<input id="analysis-symbol" name="symbol" autocomplete="off" spellcheck="false" placeholder="NASDAQ:AAPL" required></label>
-        <label>주기<select id="analysis-interval" name="interval"><option value="1">1분</option><option value="5">5분</option><option value="15">15분</option><option value="30">30분</option><option value="60">1시간</option><option value="240">4시간</option><option value="D">일봉</option><option value="W">주봉</option><option value="M">월봉</option></select></label>
-        <button type="submit">차트 적용</button>
-      </form>
-      <p id="analysis-error" role="alert" aria-live="polite"></p>
+      <div><p class="eyebrow">HOLDING ANALYSIS</p><h2 id="analysis-title">보유 종목</h2><p class="hint">평균매수가와 현재가, 20·60일 이동평균선, 거래량, RSI(14)를 표시합니다.</p></div>
+      <div id="analysis-holdings" class="analysis-holdings" aria-live="polite"></div>
     </section>
-    <section class="analysis-chart" aria-label="TradingView 고급 차트"><div id="chart-host" aria-live="polite"></div></section>
-    <section class="analysis-watchlist" aria-labelledby="watchlist-title">
-      <div><p class="eyebrow">SAVED WATCHLIST</p><h2 id="watchlist-title">관심종목</h2></div>
-      <ul id="watchlist"></ul>
-      <p class="hint">차트 도구 모음에서 보조지표, 드로잉, 비교, 스냅샷을 사용할 수 있습니다. KODEX 코스피100은 TradingView 위젯 데이터 제한으로 표시되지 않습니다.</p>
-    </section>
+    <section class="analysis-chart" aria-label="보유종목 기술 분석"><div id="analysis-chart-host" aria-live="polite"></div></section>
   </main>
-  <script type="module" src="analysis.mjs?v=20260822-2"></script>
+  <script type="module" src="analysis.mjs?v=20260822-3"></script>
 </body>
 </html>

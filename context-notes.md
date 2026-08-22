@@ -86,3 +86,6 @@
 
 # 2026-08-22 target bar alignment
 - The previous target-bar center rule lost the cascade to the shared actual-allocation selector. The target bar now uses an ID-scoped selector so each percentage remains centered inside its own segment.
+
+# 2026-08-22 holding analysis page
+- User removed the external chart requirement. `analysis.html` now uses KIS daily bars from the authenticated private portfolio snapshot and a native SVG chart. It shows average purchase price, current price, 20/60-day moving averages, volume, and RSI(14). The balance API does not include an order date, so the purchase reference is the average purchase price line.

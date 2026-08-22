@@ -1,35 +1,22 @@
-// 분석 페이지의 저장 상태와 TradingView 종목 형식을 검증한다.
+// 보유종목 분석용 일봉 정규화와 기술지표 계산을 검증한다.
 import assert from "node:assert/strict";
-import fs from "node:fs";
 import test from "node:test";
-import { isTradingViewSymbol, isWidgetAvailableSymbol, normalizeAnalysisState, readAnalysisState } from "../analysis.mjs";
+import { normalizeBars, rsi, sma } from "../analysis.mjs";
 
-test("거래소가 포함된 TradingView 종목만 허용한다", () => {
-  assert.equal(isTradingViewSymbol("KRX:237350"), true);
-  assert.equal(isTradingViewSymbol("NASDAQ:AAPL"), true);
-  assert.equal(isTradingViewSymbol("237350"), false);
+const bars = Array.from({ length: 15 }, (_, index) => ({ time: `202608${String(index + 1).padStart(2, "0")}`, open: 100 + index, high: 101 + index, low: 99 + index, close: 100 + index, volume: 1000 + index }));
+
+test("일봉은 날짜순으로 정규화한다", () => {
+  assert.equal(normalizeBars([...bars].reverse())[0].time, "20260801");
 });
 
-test("위젯에서 제공하지 않는 KODEX 코스피100을 거른다", () => {
-  assert.equal(isWidgetAvailableSymbol("KRX:237350"), false);
-  assert.equal(isWidgetAvailableSymbol("NASDAQ:AAPL"), true);
+test("이동평균은 이전 기간이 부족하면 비운다", () => {
+  const values = sma(bars, 5);
+  assert.equal(values[3], null);
+  assert.equal(values[4], 102);
 });
 
-test("잘못된 저장값은 기본값으로 정규화한다", () => {
-  assert.deepEqual(normalizeAnalysisState({ symbol: "bad", interval: "X", watchlist: ["NASDAQ:AAPL", "bad"] }), {
-    symbol: "NASDAQ:AAPL",
-    interval: "D",
-    watchlist: ["NASDAQ:AAPL"],
-  });
-});
-
-test("유효한 저장 상태를 읽는다", () => {
-  const storage = { getItem: () => JSON.stringify({ symbol: "NASDAQ:AAPL", interval: "60", watchlist: ["NASDAQ:AAPL"] }) };
-  assert.equal(readAnalysisState(storage).symbol, "NASDAQ:AAPL");
-});
-
-test("분석 경로와 공통 탐색 링크를 제공한다", () => {
-  assert.match(fs.readFileSync("analysis.html", "utf8"), /id="chart-host"/);
-  assert.match(fs.readFileSync("index.html", "utf8"), /href="analysis\.html"/);
-  assert.match(fs.readFileSync("settings.html", "utf8"), /href="analysis\.html"/);
+test("상승 일봉 RSI는 100이다", () => {
+  const values = rsi(bars, 14);
+  assert.equal(values[13], null);
+  assert.equal(values[14], 100);
 });
