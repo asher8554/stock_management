@@ -49,14 +49,18 @@ function renderChart(host, item) {
 async function init() {
   const holdings = document.getElementById("analysis-holdings"); const host = document.getElementById("analysis-chart-host");
   const token = sessionStorage.getItem("github-session");
-  if (!token) { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; return; }
+  if (!token) { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; host.textContent = "메인 페이지에서 GitHub 로그인 후 다시 열어주세요."; return; }
   const response = await fetch(`${API_BASE}/v1/portfolio`, { headers: { authorization: `Bearer ${token}` } });
-  if (!response.ok) { holdings.textContent = "보유 정보를 불러오지 못했습니다. 메인에서 다시 로그인하세요."; return; }
-  const items = (await response.json()).accounts.flatMap((account) => (account.items || []).map((item) => ({ ...item, provider: account.provider }))).filter((item) => normalizeBars(item.bars).length);
-  if (!items.length) { holdings.textContent = "일봉 데이터가 없습니다. 동기화 후 다시 확인하세요."; return; }
-  let selected = items.find((item) => item.symbol === localStorage.getItem(ANALYSIS_STORAGE_KEY)) || items[0];
+  if (!response.ok) { holdings.textContent = "보유 정보를 불러오지 못했습니다. 메인에서 다시 로그인하세요."; host.textContent = `보유 정보 요청 실패. HTTP ${response.status}`; return; }
+  const snapshot = await response.json();
+  if (!Array.isArray(snapshot.accounts)) throw new Error("보유 정보 응답 형식이 올바르지 않습니다.");
+  const items = snapshot.accounts.flatMap((account) => (Array.isArray(account.items) ? account.items : []).map((item) => ({ ...item, provider: account.provider }))).filter((item) => normalizeBars(item.bars).length);
+  if (!items.length) { holdings.textContent = "일봉 데이터가 없습니다. 동기화 후 다시 확인하세요."; host.textContent = "보유종목 일봉이 아직 동기화되지 않았습니다."; return; }
+  let savedSymbol = "";
+  try { savedSymbol = localStorage.getItem(ANALYSIS_STORAGE_KEY) || ""; } catch { /* Browser storage can be unavailable. */ }
+  let selected = items.find((item) => item.symbol === savedSymbol) || items[0];
   const render = () => { holdings.replaceChildren(...items.map((item) => { const button = document.createElement("button"); button.type = "button"; button.className = item === selected ? "selected" : ""; button.textContent = `${item.name} (${item.symbol})`; button.addEventListener("click", () => { selected = item; localStorage.setItem(ANALYSIS_STORAGE_KEY, item.symbol); render(); }); return button; })); renderChart(host, selected); };
   render();
 }
 
-if (typeof document !== "undefined") init().catch(() => { const host = document.getElementById("analysis-chart-host"); if (host) host.textContent = "분석 데이터를 불러오는 중 오류가 발생했습니다."; });
+if (typeof document !== "undefined") init().catch((error) => { console.error("holding analysis failed", error); const host = document.getElementById("analysis-chart-host"); if (host) host.textContent = `분석 데이터를 불러오는 중 오류가 발생했습니다. ${error instanceof Error ? error.message : ""}`; });
