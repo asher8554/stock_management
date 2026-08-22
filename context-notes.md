@@ -93,6 +93,6 @@
 - Analysis now distinguishes missing login, HTTP failure, missing daily bars, malformed snapshots, and rendering failures. The rendered error contains no account values or credentials.
 - Range controls use trading-day counts: 1D=1, 1W=5, 1M=22, 1Y=252, 5Y=1260, and 전체=all synced bars. KIS daily-bar ingestion requests five years so 120-day and long-period views have enough history.
 
-# 2026-08-22 portfolio refresh
-- User chose not to run a Synology real-time collector. The dashboard uses the existing local `sync_portfolio.py` schedule and refreshes authenticated private holdings every minute. Tick, second, minute, and hour bars are not shown because the available snapshot is daily data.
-- Windows Task Scheduler has no project working-directory field in this invocation, so `run_sync_portfolio.cmd` changes into the repository before starting Python and allows `.env` to load.
+# 2026-08-22 real-time holding analysis
+- User approved a Synology Docker collector. KIS credentials remain in Synology environment variables. The collector sends only bounded, derived trade bars to the existing authenticated Worker; Pages receives them only after GitHub OAuth.
+- The collector uses KIS domestic real-time trade `H0STCNT0`, obtains the WebSocket approval key locally, bounds each symbol to 3,000 recent ticks, and posts derived ticks to `/v1/realtime` with the existing ingestion token.
