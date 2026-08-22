@@ -154,3 +154,6 @@
 
 # 2026-08-22 MACD and time zoom
 - Shift+wheel changes only the SVG time-axis density, retains the user's right-edge distance, and persists the selected zoom locally. The MACD panel was enlarged without introducing vertical chart scrolling.
+
+# 2026-08-22 daily purchase markers
+- The user no longer needs tick, second, minute, or hour charts. The analysis route now reads only the private daily snapshot, offers day/week/month controls, and intentionally renders KIS buy markers only for daily candles. The existing NAS collector remains untouched because removing it is an external service action outside this UI change.

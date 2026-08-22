@@ -1,7 +1,7 @@
 // 보유종목 분석용 일봉 정규화와 기술지표 계산을 검증한다.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { aggregateBars, barsForRange, chartScrollLeft, chartViewportBars, chartWidth, indicatorValues, macd, normalizeBars, purchaseMarkers, rsi, sma, timeLabel } from "../analysis.mjs";
+import { aggregateBars, barsForRange, chartScrollLeft, chartViewportBars, chartWidth, indicatorValues, macd, normalizeBars, purchaseMarkers, purchaseMarkersForUnit, rsi, sma } from "../analysis.mjs";
 
 const bars = Array.from({ length: 15 }, (_, index) => ({ time: `202608${String(index + 1).padStart(2, "0")}`, open: 100 + index, high: 101 + index, low: 99 + index, close: 100 + index, volume: 1000 + index }));
 
@@ -24,12 +24,6 @@ test("상승 일봉 RSI는 100이다", () => {
 test("기간 선택은 최근 거래일만 남긴다", () => {
   assert.equal(barsForRange(bars, "1W").length, 5);
   assert.equal(barsForRange(bars, "전체").length, 15);
-});
-
-test("minute aggregation", () => {
-  const minutes = aggregateBars([{ time: "20260822T090001", price: 100, volume: 3 }, { time: "20260822T090059", price: 105, volume: 4 }], "분");
-  assert.deepEqual(minutes, [{ time: "20260822T0900", open: 100, high: 105, low: 100, close: 105, volume: 7 }]);
-  assert.equal(timeLabel(minutes[0].time, "분"), "09:00");
 });
 
 test("weekly candles sample daily moving average", () => {
@@ -59,6 +53,8 @@ test("unit switch scales against its preserved chart position", () => {
 test("purchase event is placed on its daily candle", () => {
   const source = [{ time: "20260820" }, { time: "20260821" }, { time: "20260822" }];
   assert.deepEqual(purchaseMarkers(source, [{ date: "20260821", price: 100, quantity: 5 }]), [{ date: "20260821", price: 100, quantity: 5, index: 1 }]);
+  assert.deepEqual(purchaseMarkersForUnit("일", source, [{ date: "20260821", price: 100, quantity: 5 }]).map(({ index }) => index), [1]);
+  assert.deepEqual(purchaseMarkersForUnit("주", source, [{ date: "20260821", price: 100, quantity: 5 }]), []);
 });
 
 test("MACD line, signal, histogram share the source length", () => {

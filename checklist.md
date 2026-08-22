@@ -141,3 +141,7 @@
 # MACD and time zoom
 - [x] Expand the MACD panel for readable bars and lines.
 - [x] Support persistent time-axis zoom with Shift+wheel.
+
+# Daily purchase markers
+- [x] Remove tick, second, minute, and hour chart controls and data reads.
+- [x] Restrict purchase markers to the daily chart.
