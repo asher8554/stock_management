@@ -103,3 +103,8 @@
 # Viewport price scaling
 
 1. Recalculate the price range from bars visible after horizontal scrolling. Verify: right price labels and candle height adapt to the viewed window.
+
+# Purchase-history markers
+
+1. Read completed KIS buy executions into the private portfolio snapshot. Verify: each active holding receives dated purchase events.
+2. Draw those events on the native chart. Verify: daily and aggregated charts place markers at the matching purchase period.

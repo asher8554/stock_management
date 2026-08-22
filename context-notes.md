@@ -139,3 +139,6 @@
 
 # 2026-08-22 viewport price scaling
 - The chart reads its horizontal scroll position, selects only the candles in view for the price range, and redraws on the next animation frame. The fixed right-axis labels therefore match the displayed historical window.
+
+# 2026-08-22 purchase-history markers
+- The KIS balance response has no execution dates. `sync_portfolio.py` now reads completed buy executions through KIS `inquire-daily-ccld` for each active domestic holding and stores date, execution price, and quantity in the private snapshot. The native chart marks that date and price with a gold `매수` marker, including its price in the visible-window scale.

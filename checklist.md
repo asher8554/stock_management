@@ -126,3 +126,7 @@
 
 # Viewport price scaling
 - [x] Auto-scale the price range and fixed price labels to the horizontally visible bars.
+
+# Purchase-history markers
+- [x] Collect completed KIS buy executions for each active holding.
+- [x] Render each execution date and price as a chart marker.
