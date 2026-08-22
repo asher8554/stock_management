@@ -55,3 +55,9 @@
 
 1. Run a KIS real-time trade collector in Synology Docker and ingest bounded tick history into the authenticated Worker. Verify: no broker credentials reach Pages.
 2. Extend the analysis route with tick, second, minute, hour, day, week, and month units. Verify: every moving average uses the selected bar unit.
+
+# Chart unit controls
+
+1. Read authenticated real-time ticks with existing Worker route. Verify: missing stream leaves daily chart usable.
+2. Aggregate selected unit in browser and calculate 20/60/120 over resulting bars. Verify: unit change changes the MA source.
+3. Render compact time labels along x-axis. Verify: timestamps remain readable on all units.

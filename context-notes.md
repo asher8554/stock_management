@@ -96,3 +96,7 @@
 # 2026-08-22 real-time holding analysis
 - User approved a Synology Docker collector. KIS credentials remain in Synology environment variables. The collector sends only bounded, derived trade bars to the existing authenticated Worker; Pages receives them only after GitHub OAuth.
 - The collector uses KIS domestic real-time trade `H0STCNT0`, obtains the WebSocket approval key locally, bounds each symbol to 3,000 recent ticks, and posts derived ticks to `/v1/realtime` with the existing ingestion token.
+
+# 2026-08-22 chart unit controls
+- The NAS container is `Up`; the analysis page can now consume its existing authenticated `/v1/realtime` route. Intraday units will aggregate those stored ticks in the browser, keeping the Worker storage format unchanged.
+- `node --test tests/analysis.test.mjs tests/worker.test.mjs` passes, including minute aggregation and displayed time formatting.

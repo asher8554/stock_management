@@ -96,5 +96,5 @@
 # Real-time holding analysis
 - [x] Add authenticated Worker storage for bounded real-time bars.
 - [x] Add a Synology Docker KIS WebSocket collector.
-- [ ] Add chart-unit controls and unit-based 20/60/120 moving averages.
+- [x] Add chart-unit controls, time axis, and unit-based 20/60/120 moving averages.
 - [x] Validate locally and prepare Synology deployment.
