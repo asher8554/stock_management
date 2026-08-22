@@ -4,5 +4,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.realtime
-    env_file: .env.realtime
+    env_file: ${REALTIME_ENV_FILE:-.env.realtime}
     restart: unless-stopped
