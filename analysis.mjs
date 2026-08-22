@@ -1,6 +1,6 @@
 // KIS 보유종목 일봉을 SVG 차트와 기술지표로 표시한다.
 export const ANALYSIS_STORAGE_KEY = "stock-management-analysis-v2";
-const API_BASE = "https://stock-management-private-api.asher8554.workers.dev";
+const API_BASE = "https://stock-management-private-api.household-account-asher.workers.dev";
 const number = (value) => Number(String(value ?? "").replaceAll(",", ""));
 const won = (value) => `${Math.round(number(value) || 0).toLocaleString("ko-KR")}원`;
 

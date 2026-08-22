@@ -89,3 +89,4 @@
 
 # 2026-08-22 holding analysis page
 - User removed the external chart requirement. `analysis.html` now uses KIS daily bars from the authenticated private portfolio snapshot and a native SVG chart. It shows average purchase price, current price, 20/60-day moving averages, volume, and RSI(14). The balance API does not include an order date, so the purchase reference is the average purchase price line.
+- Analysis initially used a nonexistent Worker subdomain. It must use the same `stock-management-private-api.household-account-asher.workers.dev` endpoint as `app.mjs`; the live endpoint health check is 200 and unauthenticated private data is 403.
