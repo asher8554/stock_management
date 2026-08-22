@@ -22,10 +22,13 @@ assert.equal((await worker.fetch(new Request("https://api/v1/portfolio"), env)).
 
 const login = await worker.fetch(new Request("https://api/auth/github"), env);
 assert.equal(login.status, 302);
+assert.match(login.headers.get("set-cookie"), /github-oauth-state=/);
+assert.equal([...cache.keys()].some((key) => key.startsWith("oauth:")), false);
 const state = new URL(login.headers.get("location")).searchParams.get("state");
+const cookie = login.headers.get("set-cookie").split(";", 1)[0];
 const originalFetch = globalThis.fetch;
 globalThis.fetch = async (url) => String(url).includes("access_token") ? Response.json({ access_token: "oauth-token" }) : Response.json({ login: "owner" });
-const callback = await worker.fetch(new Request(`https://api/auth/github/callback?code=code&state=${state}`), env);
+const callback = await worker.fetch(new Request(`https://api/auth/github/callback?code=code&state=${state}`, { headers: { cookie } }), env);
 globalThis.fetch = originalFetch;
 assert.equal(callback.status, 302);
 const session = new URL(callback.headers.get("location")).hash.split("=")[1];

@@ -39,6 +39,7 @@ const allowedGitHubLogin = (env) => env.ALLOWED_GITHUB_LOGIN?.trim().toLowerCase
 const githubConfigured = (env) => [env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET, env.GITHUB_SESSION_SECRET, allowedGitHubLogin(env)].every(Boolean);
 const callbackUrl = (request) => new URL("/auth/github/callback", request.url).toString();
 const redirect = (url) => Response.redirect(url, 302);
+const cookie = (request, name) => request.headers.get("cookie")?.split(";").map((value) => value.trim()).find((value) => value.startsWith(`${name}=`))?.slice(name.length + 1);
 const marketHeaders = (headers) => ({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
 const number = (value) => Number(String(value).replaceAll(",", ""));
 const metric = (value, asOf, source, unit = "") => ({ value: Number.isFinite(number(value)) ? number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : String(value), asOf, source, unit });
@@ -83,10 +84,9 @@ async function market(request, env, headers) {
 async function startGitHubLogin(request, env) {
   if (!githubConfigured(env)) return json({ error: "github_auth_not_configured" }, 503);
   const state = crypto.randomUUID();
-  await env.PORTFOLIO_CACHE.put(`oauth:${state}`, "1", { expirationTtl: 600 });
   const url = new URL("https://github.com/login/oauth/authorize");
   url.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callbackUrl(request), state, login: allowedGitHubLogin(env), allow_signup: "false" }).toString();
-  return redirect(url);
+  return new Response(null, { status: 302, headers: { location: url.toString(), "set-cookie": `github-oauth-state=${state}; Path=/auth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600` } });
 }
 
 async function completeGitHubLogin(request, env) {
@@ -94,8 +94,7 @@ async function completeGitHubLogin(request, env) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  if (!code || !state || !await env.PORTFOLIO_CACHE.get(`oauth:${state}`)) return json({ error: "invalid_oauth_state" }, 400);
-  await env.PORTFOLIO_CACHE.delete(`oauth:${state}`);
+  if (!code || !state || state !== cookie(request, "github-oauth-state")) return json({ error: "invalid_oauth_state" }, 400);
   const exchange = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     headers: { accept: "application/json", "content-type": "application/json" },

@@ -120,3 +120,6 @@
 
 # Fixed chart references
 - [x] Keep price labels and moving-average colors visible during horizontal scrolling.
+
+# OAuth write-limit recovery
+- [x] Move temporary GitHub OAuth state from KV to a secure, short-lived cookie.

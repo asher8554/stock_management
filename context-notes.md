@@ -133,3 +133,6 @@
 
 # 2026-08-22 fixed chart references
 - The price axis and moving-average legend are sibling overlays of the scrolling SVG. Price levels stay on the right, and the 20/60/120 colors stay at the upper left for minute and hour views.
+
+# 2026-08-22 OAuth write-limit recovery
+- Cloudflare KV reported `KV put() limit exceeded for the day`, causing 1101 failures for both real-time ingestion and GitHub OAuth state writes. OAuth state now uses a secure, HttpOnly, SameSite cookie with a ten-minute expiry, so login does not consume KV writes.

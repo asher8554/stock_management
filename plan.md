@@ -95,3 +95,7 @@
 # Fixed chart references
 
 1. Keep the price axis and moving-average legend outside the horizontal scroll layer. Verify: both remain visible while viewing historical bars.
+
+# OAuth write-limit recovery
+
+1. Keep OAuth state out of KV. Verify: the login route responds with a 302 and a secure state cookie when KV writes are exhausted.
