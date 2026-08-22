@@ -170,3 +170,6 @@
 
 # Fixed price-label alignment
 - [x] Align fixed average and current price labels to their price markers.
+
+# Target-cash purchase runway
+- [x] Exclude the configured target cash reserve from daily purchase days.

@@ -21,7 +21,7 @@ export const actualAllocation = (snapshot) => {
   return { ...totals, defense: 0, cashPercent: total ? Math.round(totals.cash / total * 100) : 0, stockPercent: total ? Math.round(totals.stock / total * 100) : 0, defensePercent: 0 };
 };
 
-export const purchaseDays = (cash, price) => {
-  const days = Math.floor(Number(cash) / Number(price));
+export const purchaseDays = (cash, price, reserve = 0) => {
+  const days = Math.floor(Math.max(0, Number(cash) - Number(reserve)) / Number(price));
   return Number.isFinite(days) && days >= 0 ? days : 0;
 };

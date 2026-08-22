@@ -17,3 +17,4 @@ assert.deepEqual(actualAllocation({ accounts: [{ cash: "300", stockValue: "700" 
 });
 
 assert.equal(purchaseDays(2661508, 87795), 30);
+assert.equal(purchaseDays(2661508, 87795, 930145), 19);

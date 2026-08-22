@@ -182,3 +182,6 @@
 
 # 2026-08-22 fixed price-label alignment
 - The fixed axis used an index-based 18px label offset that reversed nearby current and average price ordering. Labels now center on their own marker Y coordinate.
+
+# 2026-08-22 target-cash purchase runway
+- Purchase days now reserve the saved target cash percentage of total account value before applying `floor(spendable cash / current price)`. The active 30% target yields 19 days with the current snapshot values.

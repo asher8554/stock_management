@@ -13,6 +13,7 @@ const datePart = (time) => String(time).slice(0, 8);
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
 const moneyOrDash = (value, currency) => Number.isFinite(Number(value)) ? money(value, currency) : "-";
 const signedMoney = (value, currency) => Number.isFinite(Number(value)) ? `${Number(value) > 0 ? "+" : ""}${money(value, currency)}` : "-";
+const targetCashPercent = () => { try { const cash = Number(JSON.parse(localStorage.getItem("allocation") || "{\"cash\":30}").cash); return Number.isFinite(cash) ? Math.max(0, Math.min(100, cash)) : 30; } catch { return 30; } };
 
 function renderActualAllocation(snapshot) {
   const values = actualAllocation(snapshot); const container = document.getElementById("actual-allocation"); container.replaceChildren();
@@ -20,7 +21,7 @@ function renderActualAllocation(snapshot) {
   const content = document.createElement("div"); content.className = "actual-allocation-content"; const bar = document.createElement("div"); bar.className = "actual-bar"; bar.setAttribute("role", "img"); bar.setAttribute("aria-label", `현금 ${money(values.cash)} ${values.cashPercent}%, 주식 ${money(values.stock)} ${values.stockPercent}%`);
   [["cash", values.cashPercent], ["stock", values.stockPercent]].forEach(([name, percent]) => { const segment = document.createElement("i"); segment.className = name; segment.style.width = `${percent}%`; const text = document.createElement("span"); text.textContent = `${percent}%`; segment.append(text); bar.append(segment); });
   const details = document.createElement("div"); details.className = "actual-allocation-details"; [["cash", "현금", values.cash], ["stock", "주식", values.stock]].forEach(([name, label, value]) => { const item = document.createElement("p"); item.className = name; item.textContent = `${label} ${money(value)}`; details.append(item); });
-  const row = portfolioRows(snapshot).find((item) => number(item.lastPrice) > 0); if (row) { const runway = document.createElement("div"); runway.className = "buy-runway"; const label = document.createElement("span"); label.textContent = `1주/일 · ${row.name} 현재가 기준`; const days = document.createElement("strong"); days.textContent = `${purchaseDays(values.cash, number(row.lastPrice)).toLocaleString("ko-KR")}일`; runway.append(label, days); content.append(bar, details, runway); } else content.append(bar, details); container.append(title, content); container.hidden = false;
+  const row = portfolioRows(snapshot).find((item) => number(item.lastPrice) > 0); if (row) { const runway = document.createElement("div"); runway.className = "buy-runway"; const cashTarget = targetCashPercent(); const reserve = (values.cash + values.stock) * cashTarget / 100; const label = document.createElement("span"); label.textContent = `1주/일 · 목표 현금 ${cashTarget}% 유지 · ${row.name} 현재가 기준`; const days = document.createElement("strong"); days.textContent = `${purchaseDays(values.cash, number(row.lastPrice), reserve).toLocaleString("ko-KR")}일`; runway.append(label, days); content.append(bar, details, runway); } else content.append(bar, details); container.append(title, content); container.hidden = false;
 }
 
 function renderHoldings(snapshot) {

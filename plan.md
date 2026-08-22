@@ -132,3 +132,7 @@
 # Fixed price-label alignment
 
 1. Pin average and current price labels to their own dotted-price coordinates. Verify: higher price renders above lower price.
+
+# Target-cash purchase runway
+
+1. Reserve the configured target cash percentage before calculating daily one-share purchases. Verify: only cash above the reserve funds orders.
