@@ -189,4 +189,4 @@
 
 # Portfolio summary row
 - [x] Place five desktop summary cards on one horizontal row.
-- [ ] Test, deploy, and verify static bundle.
+- [x] Test, deploy, and verify static bundle.
