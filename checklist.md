@@ -205,4 +205,4 @@
 
 # Account performance baseline
 - [x] Save current cash plus stock cost as the future account-return baseline.
-- [ ] Test, deploy, and verify static bundle.
+- [x] Test, deploy, and verify static bundle.
