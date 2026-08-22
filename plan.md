@@ -128,3 +128,7 @@
 # Hover crosshair horizontal guide
 
 1. Extend the hover guide with a horizontal dotted line. Verify: both axes follow the pointer.
+
+# Fixed price-label alignment
+
+1. Pin average and current price labels to their own dotted-price coordinates. Verify: higher price renders above lower price.

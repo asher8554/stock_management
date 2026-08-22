@@ -167,3 +167,6 @@
 
 # Hover crosshair horizontal guide
 - [x] Add a horizontal dotted line to the hover guide.
+
+# Fixed price-label alignment
+- [x] Align fixed average and current price labels to their price markers.

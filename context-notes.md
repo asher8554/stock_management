@@ -179,3 +179,6 @@
 
 # 2026-08-22 hover crosshair horizontal guide
 - The existing hover path now contains both vertical snapped-candle and horizontal pointer-price guides, constrained to the chart drawing area.
+
+# 2026-08-22 fixed price-label alignment
+- The fixed axis used an index-based 18px label offset that reversed nearby current and average price ordering. Labels now center on their own marker Y coordinate.
