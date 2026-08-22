@@ -156,3 +156,7 @@
 # Portfolio summary row
 
 1. Use the full private-account width for the five summary cards. Verify: desktop shows all cards on one row.
+
+# Portfolio summary header placement
+
+1. Place five desktop cards in the account header's unused right space. Verify: holdings remain directly below the account heading.

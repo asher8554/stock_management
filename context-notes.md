@@ -200,3 +200,6 @@
 
 # 2026-08-22 portfolio summary row
 - Five portfolio summary cards use the full account-section width on desktop, while narrow screens retain a two-column fallback.
+
+# 2026-08-22 portfolio summary header placement
+- The five desktop summary cards sit in the unused right side of the private-account header, leaving the holdings table immediately below the account heading.

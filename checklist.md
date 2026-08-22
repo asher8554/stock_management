@@ -190,3 +190,7 @@
 # Portfolio summary row
 - [x] Place five desktop summary cards on one horizontal row.
 - [x] Test, deploy, and verify static bundle.
+
+# Portfolio summary header placement
+- [x] Move five desktop cards to the empty header space.
+- [ ] Test, deploy, and verify static bundle.
