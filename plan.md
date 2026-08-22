@@ -82,3 +82,7 @@
 
 1. Fetch one KIS trading day at a time and append it privately. Verify: completed dates remain stored if a later request fails.
 2. Use stored minute data only for minute and hour views. Verify: tick and second views stay live-only.
+
+# Private login entry
+
+1. Start GitHub OAuth on the fifth mark click. Verify: OAuth callback still triggers the existing portfolio load.

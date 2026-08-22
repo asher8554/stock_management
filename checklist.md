@@ -110,3 +110,6 @@
 
 # Historical minute and hour charts
 - [ ] Store up to one year of KIS minute bars privately and use them for minute/hour charts.
+
+# Private login entry
+- [x] Start GitHub OAuth automatically after the fifth header-mark click.

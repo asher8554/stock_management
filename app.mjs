@@ -16,6 +16,7 @@ function render() {
 
 const dialog = document.getElementById("private-dialog");
 const apiBase = "https://stock-management-private-api.household-account-asher.workers.dev";
+const loginUrl = document.getElementById("access-login").href;
 const sessionKey = "github-session";
 const callbackToken = new URLSearchParams(location.hash.slice(1)).get("github-auth");
 if (callbackToken) {
@@ -30,7 +31,7 @@ mark.addEventListener("click", () => {
   clearTimeout(clickReset);
   if (clicks === 5) {
     clicks = 0;
-    dialog.showModal();
+    location.assign(loginUrl);
     return;
   }
   clickReset = setTimeout(() => { clicks = 0; }, 3000);

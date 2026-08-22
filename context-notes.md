@@ -121,3 +121,6 @@
 
 # 2026-08-22 historical minute and hour charts
 - Tick and second charts remain live-only. A private Worker endpoint stores backfilled KIS minute bars separately; the browser loads them only when the minute or hour unit is selected.
+
+# 2026-08-22 private login entry
+- The fifth header-mark click now redirects straight to the existing GitHub OAuth endpoint. The OAuth callback retains its existing session-storage and automatic private-portfolio loading flow.
