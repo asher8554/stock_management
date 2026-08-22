@@ -95,3 +95,4 @@
 
 # 2026-08-22 portfolio refresh
 - User chose not to run a Synology real-time collector. The dashboard uses the existing local `sync_portfolio.py` schedule and refreshes authenticated private holdings every minute. Tick, second, minute, and hour bars are not shown because the available snapshot is daily data.
+- Windows Task Scheduler has no project working-directory field in this invocation, so `run_sync_portfolio.cmd` changes into the repository before starting Python and allows `.env` to load.
