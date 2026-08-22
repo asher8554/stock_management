@@ -164,3 +164,6 @@
 
 # Daily purchase runway
 - [x] Show one-share-per-day purchase days from cash and the held stock's current price.
+
+# Hover crosshair horizontal guide
+- [x] Add a horizontal dotted line to the hover guide.

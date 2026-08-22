@@ -124,3 +124,7 @@
 # Daily purchase runway
 
 1. Show how many one-share daily orders current cash funds at the held stock's current price. Verify: cash divided by last price is rounded down to days.
+
+# Hover crosshair horizontal guide
+
+1. Extend the hover guide with a horizontal dotted line. Verify: both axes follow the pointer.

@@ -176,3 +176,6 @@
 
 # 2026-08-22 daily purchase runway
 - The private account allocation now states the one-share-per-day purchase runway for the first holding with a valid current price. It uses `floor(cash / current price)` and labels the reference holding explicitly.
+
+# 2026-08-22 hover crosshair horizontal guide
+- The existing hover path now contains both vertical snapped-candle and horizontal pointer-price guides, constrained to the chart drawing area.
