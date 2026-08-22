@@ -92,3 +92,9 @@
 - [x] Run the KIS sync and validate the deployed analysis route.
 - [x] Show actionable private-data and rendering failures instead of a generic chart error.
 - [x] Add range selectors and a 120-day moving average to holding analysis.
+
+# Real-time holding analysis
+- [x] Add authenticated Worker storage for bounded real-time bars.
+- [x] Add a Synology Docker KIS WebSocket collector.
+- [ ] Add chart-unit controls and unit-based 20/60/120 moving averages.
+- [x] Validate locally and prepare Synology deployment.

@@ -49,3 +49,7 @@ globalThis.fetch = async () => Response.json({ observations: [{ date: "2026-08-2
 const mergedMarket = await worker.fetch(new Request("https://api/v1/market"), { ...env, FRED_API_KEY: "fred-key" });
 globalThis.fetch = originalFetch;
 assert.equal((await mergedMarket.json()).metrics.kospi100.value, "1,000");
+
+const realtimeSnapshot = { updatedAt: "2026-08-22T00:00:00Z", symbols: { "237350": [{ time: "20260822T090000", price: 100, volume: 1 }] } };
+assert.equal((await worker.fetch(new Request("https://api/v1/realtime", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(realtimeSnapshot) }), env)).status, 200);
+assert.equal((await worker.fetch(new Request("https://api/v1/realtime", { headers: { authorization: `Bearer ${session}` } }), env)).status, 200);

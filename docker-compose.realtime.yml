@@ -1,0 +1,8 @@
+# Synology에서 KIS 실시간 체결 수집기를 상시 실행한다.
+services:
+  kis-realtime:
+    build:
+      context: .
+      dockerfile: Dockerfile.realtime
+    env_file: .env.realtime
+    restart: unless-stopped

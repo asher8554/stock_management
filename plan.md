@@ -50,3 +50,8 @@
 # Holding analysis page
 
 1. Upload KIS holding daily bars and render average purchase price, current price, moving averages, volume, and RSI privately. Verify: the analysis route has no external chart dependency.
+
+# Real-time holding analysis
+
+1. Run a KIS real-time trade collector in Synology Docker and ingest bounded tick history into the authenticated Worker. Verify: no broker credentials reach Pages.
+2. Extend the analysis route with tick, second, minute, hour, day, week, and month units. Verify: every moving average uses the selected bar unit.
