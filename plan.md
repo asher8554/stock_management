@@ -73,3 +73,7 @@
 # Real-time timestamp correction
 
 1. Build each KIS trade timestamp from the collector date and HHMMSS payload. Verify: client timestamp parser accepts tick records.
+
+# Daily moving averages on higher units
+
+1. Sample daily 20/60/120 moving averages at weekly and monthly candle boundaries. Verify: weekly and monthly legends remain day-based.

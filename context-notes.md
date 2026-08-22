@@ -114,3 +114,7 @@
 # 2026-08-22 real-time timestamp correction
 - Synology reports Saturday, 2026-08-22 KST, so no new domestic-market trades can arrive now. The collector also used an uncertain payload field as its date; normalize every tick with the collector's current `YYYYMMDD` plus the official `HHMMSS` field.
 - The user rebuilt the Synology container after the corrected collector source was copied.
+
+# 2026-08-22 daily moving averages on higher units
+- Weekly and monthly candles should stay aggregated, but their MA lines must be sampled from daily 20/60/120 values, not recalculated as 20/60/120 weeks or months.
+- The dedicated weekly sampling test passes with the final 20-day value carried to the latest weekly candle.

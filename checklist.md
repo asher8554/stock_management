@@ -104,3 +104,6 @@
 
 # Real-time timestamp correction
 - [x] Normalize KIS real-time tick timestamps and redeploy the Synology collector.
+
+# Daily moving averages on higher units
+- [x] Keep weekly and monthly candles while using 20/60/120-day moving averages.
