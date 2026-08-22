@@ -110,3 +110,6 @@
 # 2026-08-22 full daily history
 - The previous collector used one KIS daily-price call with a 1,826-day start. The KIS endpoint returns at most 100 rows per response, so `전체` must page backward from the most recent returned date to the first available date.
 - The one-time full-history `python sync_portfolio.py` run completed successfully and uploaded the updated private snapshot.
+
+# 2026-08-22 real-time timestamp correction
+- Synology reports Saturday, 2026-08-22 KST, so no new domestic-market trades can arrive now. The collector also used an uncertain payload field as its date; normalize every tick with the collector's current `YYYYMMDD` plus the official `HHMMSS` field.

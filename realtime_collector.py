@@ -42,7 +42,7 @@ def record(message):
         if len(row) < 14:
             continue
         try:
-            TICKS[row[0]].append({"time": f"{row[33] if len(row) > 33 else datetime.now().strftime('%Y%m%d')}T{row[1]}", "price": int(row[2]), "volume": int(row[12])})
+            TICKS[row[0]].append({"time": f"{datetime.now().strftime('%Y%m%d')}T{row[1]}", "price": int(row[2]), "volume": int(row[12])})
         except ValueError:
             continue
 

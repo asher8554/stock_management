@@ -69,3 +69,7 @@
 # Full daily history
 
 1. Page KIS daily responses backward to the instrument's first available day. Verify: stored bars exceed the previous five-year window.
+
+# Real-time timestamp correction
+
+1. Build each KIS trade timestamp from the collector date and HHMMSS payload. Verify: client timestamp parser accepts tick records.
