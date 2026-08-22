@@ -123,3 +123,6 @@
 
 # OAuth write-limit recovery
 - [x] Move temporary GitHub OAuth state from KV to a secure, short-lived cookie.
+
+# Viewport price scaling
+- [x] Auto-scale the price range and fixed price labels to the horizontally visible bars.

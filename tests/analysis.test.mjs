@@ -1,7 +1,7 @@
 // 보유종목 분석용 일봉 정규화와 기술지표 계산을 검증한다.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { aggregateBars, barsForRange, chartWidth, indicatorValues, normalizeBars, rsi, sma, timeLabel } from "../analysis.mjs";
+import { aggregateBars, barsForRange, chartViewportBars, chartWidth, indicatorValues, normalizeBars, rsi, sma, timeLabel } from "../analysis.mjs";
 
 const bars = Array.from({ length: 15 }, (_, index) => ({ time: `202608${String(index + 1).padStart(2, "0")}`, open: 100 + index, high: 101 + index, low: 99 + index, close: 100 + index, volume: 1000 + index }));
 
@@ -42,4 +42,10 @@ test("weekly candles sample daily moving average", () => {
 test("scrollable chart keeps the current viewport width then grows by bars", () => {
   assert.equal(chartWidth(120), 1080);
   assert.equal(chartWidth(121), 1088);
+});
+
+test("scroll position selects the price auto-scale bars", () => {
+  const source = Array.from({ length: 240 }, (_, index) => ({ close: index }));
+  assert.equal(chartViewportBars(source, 0, 1080)[0].close, 0);
+  assert.equal(chartViewportBars(source, 960, 1080)[0].close > 100, true);
 });

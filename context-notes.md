@@ -136,3 +136,6 @@
 
 # 2026-08-22 OAuth write-limit recovery
 - Cloudflare KV reported `KV put() limit exceeded for the day`, causing 1101 failures for both real-time ingestion and GitHub OAuth state writes. OAuth state now uses a secure, HttpOnly, SameSite cookie with a ten-minute expiry, so login does not consume KV writes.
+
+# 2026-08-22 viewport price scaling
+- The chart reads its horizontal scroll position, selects only the candles in view for the price range, and redraws on the next animation frame. The fixed right-axis labels therefore match the displayed historical window.

@@ -88,6 +88,11 @@ export function indicatorValues(daily, bars, unit, period, calculate = sma) {
 }
 
 export const chartWidth = (count) => Math.max(1080, 1080 + (Math.max(1, count) - 120) * 8);
+export const chartViewportBars = (bars, scrollLeft, viewportWidth) => {
+  const step = (chartWidth(bars.length) - 113) / Math.max(bars.length - 1, 1);
+  const start = Math.max(0, Math.floor((scrollLeft - 58) / step)); const end = Math.min(bars.length, Math.ceil((scrollLeft + viewportWidth - 126) / step) + 1);
+  return bars.slice(start, Math.max(start + 1, end));
+};
 
 function linePath(values, x, y) {
   let started = false;
@@ -99,7 +104,7 @@ function renderChart(host, item, ticks, intraday, unit, range) {
   const allBars = barsForUnit(item.bars, ticks, intraday, unit); const bars = rangeBars(allBars, range, unit);
   if (!bars.length) { host.textContent = ["틱", "초", "분", "시"].includes(unit) ? "실시간 체결 데이터가 아직 없습니다. 장중 체결 후 표시됩니다." : "일별 데이터가 없습니다. 다음 동기화 뒤 다시 확인하세요."; legend.replaceChildren(); axis.replaceChildren(); return; }
   const scrollRight = Math.max(0, host.scrollWidth - host.clientWidth - host.scrollLeft); const start = Math.max(0, allBars.length - bars.length); const width = chartWidth(bars.length); const priceTop = 28; const priceBottom = 310; const volumeTop = 340; const volumeBottom = 415; const rsiTop = 455; const rsiBottom = 535; const left = 58; const right = width - 55;
-  const lows = bars.map((bar) => bar.low); const highs = bars.map((bar) => bar.high); const min = Math.min(...lows, number(item.averagePurchasePrice), number(item.lastPrice)); const max = Math.max(...highs, number(item.averagePurchasePrice), number(item.lastPrice)); const padding = Math.max((max - min) * 0.08, 1);
+  const scaleBars = chartViewportBars(bars, host.scrollLeft, host.clientWidth); const lows = scaleBars.map((bar) => bar.low); const highs = scaleBars.map((bar) => bar.high); const min = Math.min(...lows, number(item.averagePurchasePrice), number(item.lastPrice)); const max = Math.max(...highs, number(item.averagePurchasePrice), number(item.lastPrice)); const padding = Math.max((max - min) * 0.08, 1);
   const x = (index) => left + index * (right - left) / Math.max(bars.length - 1, 1); const bodyWidth = Math.max(1, Math.min(8, (right - left) / Math.max(bars.length, 1) * .68)); const y = (value) => priceBottom - (value - min + padding) * (priceBottom - priceTop) / (max - min + padding * 2); const volumeMax = Math.max(...bars.map((bar) => bar.volume), 1); const volumeY = (value) => volumeBottom - value * (volumeBottom - volumeTop) / volumeMax; const rsiY = (value) => rsiBottom - value * (rsiBottom - rsiTop) / 100;
   const daily = normalizeBars(item.bars); const ma20 = indicatorValues(daily, allBars, unit, 20).slice(start); const ma60 = indicatorValues(daily, allBars, unit, 60).slice(start); const ma120 = indicatorValues(daily, allBars, unit, 120).slice(start); const rsi14 = indicatorValues(daily, allBars, unit, 14, rsi).slice(start); const maUnit = ["일", "주", "월"].includes(unit) ? "일" : unit;
   const priceAxis = [0, .25, .5, .75, 1].map((ratio) => ({ value: min - padding + (max - min + padding * 2) * ratio, top: y(min - padding + (max - min + padding * 2) * ratio) })); const grid = priceAxis.map(({ top }) => `<path d="M${left} ${top}H${right}" class="chart-grid"/>`).join("");
@@ -118,14 +123,17 @@ async function init() {
   if (!token) { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; host.textContent = "메인 페이지에서 GitHub 로그인 후 다시 열어주세요."; return; }
   let selectedSymbol = localStorage.getItem(ANALYSIS_STORAGE_KEY) || ""; let selectedRange = localStorage.getItem(ANALYSIS_RANGE_STORAGE_KEY) || "전체"; let selectedUnit = localStorage.getItem(ANALYSIS_UNIT_STORAGE_KEY) || "일";
   if (!Object.hasOwn(ANALYSIS_RANGES, selectedRange)) selectedRange = "전체"; if (!ANALYSIS_UNITS.includes(selectedUnit)) selectedUnit = "일";
-  let items = []; let realtime = {}; let intraday = {};
+  let items = []; let realtime = {}; let intraday = {}; let rendering = false; let renderedScrollLeft = -1; let scrollFrame;
   const render = () => {
+    rendering = true; renderedScrollLeft = host.scrollLeft;
     const selected = items.find((item) => item.symbol === selectedSymbol) || items[0]; if (!selected) return;
     holdings.replaceChildren(...items.map((item) => { const button = document.createElement("button"); button.type = "button"; button.className = item.symbol === selected.symbol ? "selected" : ""; button.textContent = `${item.name} (${item.symbol})`; button.onclick = () => { selectedSymbol = item.symbol; localStorage.setItem(ANALYSIS_STORAGE_KEY, selectedSymbol); render(); }; return button; }));
     units.replaceChildren(...ANALYSIS_UNITS.map((unit) => { const button = document.createElement("button"); button.type = "button"; button.className = unit === selectedUnit ? "selected" : ""; button.textContent = unit; button.onclick = async () => { selectedUnit = unit; localStorage.setItem(ANALYSIS_UNIT_STORAGE_KEY, unit); if (["분", "시"].includes(unit) && !Object.hasOwn(intraday, selected.symbol)) { const response = await fetch(`${API_BASE}/v1/intraday?symbol=${encodeURIComponent(selected.symbol)}`, { headers: { authorization: `Bearer ${token}` } }); intraday[selected.symbol] = response.ok ? (await response.json()).bars || [] : []; } render(); }; return button; }));
     ranges.replaceChildren(...Object.keys(ANALYSIS_RANGES).map((range) => { const button = document.createElement("button"); button.type = "button"; button.className = range === selectedRange ? "selected" : ""; button.textContent = range; button.onclick = () => { selectedRange = range; localStorage.setItem(ANALYSIS_RANGE_STORAGE_KEY, range); render(); }; return button; }));
     renderChart(host, selected, realtime[selected.symbol] || [], intraday[selected.symbol] || [], selectedUnit, selectedRange);
+    requestAnimationFrame(() => { rendering = false; renderedScrollLeft = host.scrollLeft; });
   };
+  host.addEventListener("scroll", () => { if (rendering || Math.abs(host.scrollLeft - renderedScrollLeft) < 1) return; cancelAnimationFrame(scrollFrame); scrollFrame = requestAnimationFrame(render); });
   const load = async () => {
     const portfolio = await fetch(`${API_BASE}/v1/portfolio`, { headers: { authorization: `Bearer ${token}` } });
     if (!portfolio.ok) throw new Error(`보유 정보 요청 실패. HTTP ${portfolio.status}`);

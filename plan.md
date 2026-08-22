@@ -99,3 +99,7 @@
 # OAuth write-limit recovery
 
 1. Keep OAuth state out of KV. Verify: the login route responds with a 302 and a secure state cookie when KV writes are exhausted.
+
+# Viewport price scaling
+
+1. Recalculate the price range from bars visible after horizontal scrolling. Verify: right price labels and candle height adapt to the viewed window.
