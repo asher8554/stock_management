@@ -166,3 +166,4 @@
 
 # 2026-08-22 hover crosshair
 - The scrollable SVG chart uses one pointer-events-free dotted path that snaps to the nearest candle and hides when the pointer leaves the chart.
+- SVG paths need explicit `removeAttribute("hidden")`; setting the `hidden` property did not reveal the initial hidden guide in the browser.
