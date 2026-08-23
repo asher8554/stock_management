@@ -18,17 +18,6 @@ def load_env(path=Path(".env")):
             os.environ[key.strip()] = value.strip()
 
 
-def toss_credentials():
-    return (
-        os.environ.get("TOSS_CLIENT_ID") or os.environ["TOSS_CLIENT_KEY"],
-        os.environ.get("TOSS_CLIENT_SECRET") or os.environ["TOSS_SECRET_KEY"],
-    )
-
-
-def holding_item(item):
-    return {key: item.get(key) for key in ("symbol", "name", "marketCountry", "currency", "quantity", "lastPrice", "averagePurchasePrice")} | {"marketValue": item.get("marketValue", {}).get("amount")}
-
-
 def request_json(url, method="GET", headers=None, form=None, json_body=None):
     data = json.dumps(json_body).encode() if json_body is not None else urlencode(form).encode() if form else None
     request = Request(url, data=data, headers={"User-Agent": "stock-management-sync/1.0", **(headers or {})}, method=method)
@@ -38,28 +27,6 @@ def request_json(url, method="GET", headers=None, form=None, json_body=None):
     except HTTPError as error:
         detail = error.read().decode("utf-8", "replace")[:300]
         raise RuntimeError(f"{error.code} {url}: {detail}") from error
-
-
-def toss_account():
-    client_id, client_secret = toss_credentials()
-    token = request_json("https://openapi.tossinvest.com/oauth2/token", method="POST", form={
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret,
-    })["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    accounts = request_json("https://openapi.tossinvest.com/api/v1/accounts", headers=headers)["result"]
-    account = next((item for item in accounts if item["accountType"] == "BROKERAGE"), None)
-    if not account:
-        raise RuntimeError("토스증권 BROKERAGE 계좌를 찾지 못했습니다.")
-    holdings = request_json("https://openapi.tossinvest.com/api/v1/holdings", headers={
-        **headers, "X-Tossinvest-Account": str(account["accountSeq"]),
-    })["result"]
-    return {
-        "provider": "toss",
-        "items": [holding_item(item) for item in holdings["items"]],
-        "marketValue": holdings["marketValue"],
-    }
 
 
 def kis_snapshot(data):
@@ -90,33 +57,6 @@ def kis_daily_bars(token, symbol):
         time.sleep(.15)
     unique = {row.get("stck_bsop_date"): row for row in rows}
     return [{"time": row.get("stck_bsop_date"), "open": row.get("stck_oprc"), "high": row.get("stck_hgpr"), "low": row.get("stck_lwpr"), "close": row.get("stck_clpr"), "volume": row.get("acml_vol")} for _, row in sorted(unique.items())]
-
-
-def kis_intraday_bars(token, symbol):
-    rows = {}
-    for offset in range(366):
-        day = (datetime.now().astimezone().date() - timedelta(days=offset)).strftime("%Y%m%d")
-        cursor = "153000"
-        for _ in range(10):
-            query = urlencode({"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": symbol, "FID_INPUT_HOUR_1": cursor, "FID_INPUT_DATE_1": day, "FID_PW_DATA_INCU_YN": "Y", "FID_FAKE_TICK_INCU_YN": ""})
-            data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-dailychartprice?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": "FHKST03010230"})
-            if data.get("rt_cd") != "0":
-                raise RuntimeError(data.get("msg1", "한국투자증권 분봉 조회 실패"))
-            page = data.get("output2", [])
-            if not page:
-                break
-            for row in page:
-                moment = row.get("stck_cntg_hour", "")
-                price = row.get("stck_prpr")
-                if len(moment) == 6 and price:
-                    rows[f"{day}T{moment}"] = {"time": f"{day}T{moment}", "open": price, "high": price, "low": price, "close": price, "volume": row.get("cntg_vol", 0)}
-            earliest = min((row.get("stck_cntg_hour", "") for row in page), default="")
-            if len(page) < 120 or earliest <= "090000":
-                break
-            cursor = earliest
-            time.sleep(.15)
-        time.sleep(.15)
-    return [rows[key] for key in sorted(rows)]
 
 
 def kis_trades(token, account, product, symbol):
@@ -153,7 +93,7 @@ def kis_account():
     for item in snapshot["items"]:
         item["bars"] = kis_daily_bars(token, item["symbol"])
         item["trades"] = kis_trades(token, account, product, item["symbol"])
-    return snapshot, token
+    return snapshot
 
 
 def krx_metric(url, name_field, name, value_field, unit):
@@ -175,15 +115,9 @@ def krx_snapshot():
 
 def main():
     load_env()
-    accounts = []
-    if os.environ.get("TOSS_CLIENT_ID") or os.environ.get("TOSS_CLIENT_KEY"):
-        accounts.append(toss_account())
-    if os.environ.get("KIS_APP_KEY"):
-        account, _ = kis_account()
-        accounts.append(account)
-    if not accounts:
-        raise RuntimeError("TOSS_CLIENT_ID 또는 KIS_APP_KEY 환경변수가 필요합니다.")
-    snapshot = {"updatedAt": datetime.now(timezone.utc).isoformat(), "accounts": accounts}
+    if not os.environ.get("KIS_APP_KEY"):
+        raise RuntimeError("KIS_APP_KEY 환경변수가 필요합니다.")
+    snapshot = {"updatedAt": datetime.now(timezone.utc).isoformat(), "accounts": [kis_account()]}
     url = os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/snapshot"
     request_json(url, method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=snapshot)
     request_json(os.environ["PORTFOLIO_INGEST_URL"].rstrip("/") + "/v1/market/krx", method="POST", headers={"Authorization": f"Bearer {os.environ['PORTFOLIO_INGEST_TOKEN']}", "content-type": "application/json"}, json_body=krx_snapshot())
