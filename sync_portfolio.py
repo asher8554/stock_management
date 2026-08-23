@@ -119,21 +119,22 @@ def kis_intraday_bars(token, symbol):
     return [rows[key] for key in sorted(rows)]
 
 
-def kis_purchases(token, account, product, symbol):
+def kis_trades(token, account, product, symbol):
     end = datetime.now().astimezone().date()
     split = end - timedelta(days=90)
-    purchases = {}
-    for tr_id, start, finish in (("TTTC0081R", split.strftime("%Y%m%d"), end.strftime("%Y%m%d")), ("CTSC9215R", "19900101", (split - timedelta(days=1)).strftime("%Y%m%d"))):
-        query = urlencode({"CANO": account, "ACNT_PRDT_CD": product, "INQR_STRT_DT": start, "INQR_END_DT": finish, "SLL_BUY_DVSN_CD": "02", "PDNO": symbol, "CCLD_DVSN": "01", "INQR_DVSN": "00", "INQR_DVSN_3": "00", "ORD_GNO_BRNO": "", "ODNO": "", "INQR_DVSN_1": "", "CTX_AREA_FK100": "", "CTX_AREA_NK100": "", "EXCG_ID_DVSN_CD": "KRX"})
-        try:
-            data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-daily-ccld?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": tr_id, "custtype": "P"})
-        except RuntimeError:
-            continue
-        for row in data.get("output1", []):
-            date = row.get("ord_dt", ""); price = row.get("avg_prvs") or row.get("avg_ccld_prc") or row.get("ord_unpr"); quantity = row.get("tot_ccld_qty") or row.get("ccld_qty") or row.get("ord_qty")
-            if len(date) == 8 and price and quantity:
-                purchases[f"{date}:{row.get('odno', '')}"] = {"date": date, "price": price, "quantity": quantity}
-    return list(purchases.values())
+    trades = {}
+    for side, direction in (("buy", "02"), ("sell", "01")):
+        for tr_id, start, finish in (("TTTC0081R", split.strftime("%Y%m%d"), end.strftime("%Y%m%d")), ("CTSC9215R", "19900101", (split - timedelta(days=1)).strftime("%Y%m%d"))):
+            query = urlencode({"CANO": account, "ACNT_PRDT_CD": product, "INQR_STRT_DT": start, "INQR_END_DT": finish, "SLL_BUY_DVSN_CD": direction, "PDNO": symbol, "CCLD_DVSN": "01", "INQR_DVSN": "00", "INQR_DVSN_3": "00", "ORD_GNO_BRNO": "", "ODNO": "", "INQR_DVSN_1": "", "CTX_AREA_FK100": "", "CTX_AREA_NK100": "", "EXCG_ID_DVSN_CD": "KRX"})
+            try:
+                data = request_json(f"https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-daily-ccld?{query}", headers={"authorization": f"Bearer {token}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"], "tr_id": tr_id, "custtype": "P"})
+            except RuntimeError:
+                continue
+            for row in data.get("output1", []):
+                date = row.get("ord_dt", ""); price = row.get("avg_prvs") or row.get("avg_ccld_prc") or row.get("ord_unpr"); quantity = row.get("tot_ccld_qty") or row.get("ccld_qty") or row.get("ord_qty")
+                if len(date) == 8 and price and quantity:
+                    trades[f"{side}:{date}:{row.get('odno', '')}"] = {"date": date, "price": price, "quantity": quantity, "side": side}
+    return list(trades.values())
 
 
 def kis_account():
@@ -151,7 +152,7 @@ def kis_account():
     snapshot = kis_snapshot(data)
     for item in snapshot["items"]:
         item["bars"] = kis_daily_bars(token, item["symbol"])
-        item["purchases"] = kis_purchases(token, account, product, item["symbol"])
+        item["trades"] = kis_trades(token, account, product, item["symbol"])
     return snapshot, token
 
 

@@ -176,3 +176,7 @@
 # Data-backed yearly return
 
 1. Show the current calendar-year return only when the saved baseline and current data belong to the same year. Verify: years without data render no yearly card.
+
+# Buy and sell markers
+
+1. Fetch buy and sell executions and render one color-coded legend without overlapping text labels. Verify: daily chart shows colored trade dots and guides.

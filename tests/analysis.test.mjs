@@ -52,7 +52,7 @@ test("unit switch scales against its preserved chart position", () => {
 
 test("purchase event is placed on its daily candle", () => {
   const source = [{ time: "20260820" }, { time: "20260821" }, { time: "20260822" }];
-  assert.deepEqual(purchaseMarkers(source, [{ date: "20260821", price: 100, quantity: 5 }]), [{ date: "20260821", price: 100, quantity: 5, index: 1 }]);
+  assert.deepEqual(purchaseMarkers(source, [{ date: "20260821", price: 100, quantity: 5 }, { date: "20260821", price: 105, quantity: 2, side: "sell" }]), [{ date: "20260821", price: 100, quantity: 5, side: "buy", index: 1 }, { date: "20260821", price: 105, quantity: 2, side: "sell", index: 1 }]);
   assert.deepEqual(purchaseMarkersForUnit("일", source, [{ date: "20260821", price: 100, quantity: 5 }]).map(({ index }) => index), [1]);
   assert.deepEqual(purchaseMarkersForUnit("주", source, [{ date: "20260821", price: 100, quantity: 5 }]), []);
 });

@@ -210,3 +210,8 @@
 # Data-backed yearly return
 - [x] Show only the calendar-year return when baseline and current data share a year.
 - [x] Test, deploy, and verify static bundle.
+
+# Buy and sell markers
+- [x] Fetch buy and sell executions in the KIS snapshot.
+- [x] Render color-coded dots and one legend entry per side.
+- [ ] Test, deploy, and verify static bundle.

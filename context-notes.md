@@ -215,3 +215,6 @@
 
 # 2026-08-23 data-backed yearly return
 - The annualized card is replaced by a calendar-year return card only when baseline and current snapshot share a year. No card appears for years without account data.
+
+# 2026-08-23 buy and sell markers
+- KIS trade sync now stores both sides in `trades`. The chart renders buy gold and sell pink dots/vertical guides, with no per-trade text labels; the fixed legend explains both colors. Legacy `purchases` snapshots remain readable.
