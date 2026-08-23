@@ -224,3 +224,6 @@
 
 # 2026-08-23 yearly returns page
 - Added a separate authenticated yearly-return view based on each holding's available daily bars. Cash and account cash flows are explicitly excluded because the current private snapshot has no historical cash-flow series.
+
+# 2026-08-23 yearly return detail modal
+- Year cards now open a native dialog with each holding's symbol, date range, first and last close, and return for that year.

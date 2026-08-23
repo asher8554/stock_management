@@ -221,3 +221,4 @@
 - [x] Add the authenticated yearly returns route and navigation.
 - [x] Calculate holding daily-bar returns by calendar year.
 - [x] Test, deploy, and verify the static bundle.
+- [x] Open a year card to inspect per-holding dates, prices, and returns.
