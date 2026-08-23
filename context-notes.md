@@ -218,3 +218,6 @@
 
 # 2026-08-23 buy and sell markers
 - KIS trade sync now stores both sides in `trades`. The chart renders buy gold and sell pink dots/vertical guides, with no per-trade text labels; the fixed legend explains both colors. Legacy `purchases` snapshots remain readable.
+
+# 2026-08-23 trade marker contrast
+- Trade guides are now thicker, opaque, and rendered after price overlays so buy/sell colors remain visible on the daily chart. Asset versions were bumped to avoid stale GitHub Pages CSS/JS.

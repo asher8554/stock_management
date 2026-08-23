@@ -215,3 +215,4 @@
 - [x] Fetch buy and sell executions in the KIS snapshot.
 - [x] Render color-coded dots and one legend entry per side.
 - [x] Test, deploy, and verify static bundle.
+- [x] Increase marker contrast and render trade guides above chart overlays.
