@@ -1,7 +1,7 @@
 // 보유종목 분석용 일봉 정규화와 기술지표 계산을 검증한다.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { accountPerformance, accountTotals, aggregateBars, annualReturn, barsForRange, bollinger, chartHoverIndex, chartScrollLeft, chartViewportBars, chartWidth, cumulativeReturn, indicatorValues, macd, normalizeBars, portfolioTotals, purchaseMarkers, purchaseMarkersForUnit, rsi, sma } from "../analysis.mjs";
+import { accountPerformance, accountTotals, aggregateBars, barsForRange, bollinger, chartHoverIndex, chartScrollLeft, chartViewportBars, chartWidth, cumulativeReturn, indicatorValues, macd, normalizeBars, portfolioTotals, purchaseMarkers, purchaseMarkersForUnit, rsi, sma } from "../analysis.mjs";
 
 const bars = Array.from({ length: 15 }, (_, index) => ({ time: `202608${String(index + 1).padStart(2, "0")}`, open: 100 + index, high: 101 + index, low: 99 + index, close: 100 + index, volume: 1000 + index }));
 
@@ -73,11 +73,10 @@ test("bollinger bands use a 20-period mean and standard deviation", () => {
   assert.deepEqual(bands.at(-1), { upper: 100, middle: 100, lower: 100 });
 });
 
-test("account return and annual return use cost basis and 252 trading days", () => {
+test("account return uses cost basis and account totals", () => {
   assert.equal(cumulativeReturn([{ averagePurchasePrice: 100, quantity: 2, marketValue: 220 }]), 10);
   assert.deepEqual(portfolioTotals([{ averagePurchasePrice: 100, quantity: 2, marketValue: 220 }]), { cost: 200, value: 220 });
   assert.deepEqual(accountTotals({ accounts: [{ cash: 500, items: [{ averagePurchasePrice: 100, quantity: 2, marketValue: 220 }] }] }), { cost: 700, value: 720 });
   assert.deepEqual(accountPerformance({ cost: 700, capturedAt: "2026-01-01T00:00:00.000Z" }, { value: 770 }, "2026-01-31T00:00:00.000Z"), { cumulative: 10, annualized: 218.87, elapsedDays: 30, year: 2026 });
   assert.equal(accountPerformance({ cost: 700, capturedAt: "2025-12-31T00:00:00.000Z" }, { value: 770 }, "2026-01-31T00:00:00.000Z").year, null);
-  assert.equal(annualReturn(Array.from({ length: 253 }, (_, index) => ({ time: `2025${String(index).padStart(4, "0")}`, open: 100 + index, high: 100 + index, low: 100 + index, close: 100 + index }))), 252);
 });

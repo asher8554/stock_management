@@ -1,4 +1,5 @@
 // KIS 보유종목의 일·주·월 차트와 기술지표를 SVG로 표시한다.
+import { API_BASE } from "./api.mjs";
 import { actualAllocation, portfolioRows, purchaseDays } from "./portfolio.mjs";
 export const ANALYSIS_STORAGE_KEY = "stock-management-analysis-v2";
 export const ANALYSIS_RANGE_STORAGE_KEY = "stock-management-analysis-range-v1";
@@ -7,8 +8,9 @@ export const ANALYSIS_ZOOM_STORAGE_KEY = "stock-management-analysis-zoom-v1";
 export const ACCOUNT_PERFORMANCE_BASELINE_KEY = "stock-management-account-performance-baseline-v1";
 export const ANALYSIS_RANGES = Object.freeze({ "1D": 1, "1W": 5, "1M": 22, "1Y": 252, "5Y": 1260, "전체": Infinity });
 export const ANALYSIS_UNITS = Object.freeze(["일", "주", "월"]);
-const API_BASE = "https://stock-management-private-api.household-account-asher.workers.dev";
 const number = (value) => Number(String(value ?? "").replaceAll(",", ""));
+// 브로커 스냅샷 문자열을 SVG 속성에 넣기 전에 이스케이프한다.
+const esc = (value) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 const won = (value) => `₩${Math.round(number(value) || 0).toLocaleString("ko-KR")}`;
 const datePart = (time) => String(time).slice(0, 8);
 const money = (value, currency) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: currency || "KRW", maximumFractionDigits: 0 }).format(Number(value));
@@ -72,11 +74,6 @@ export function normalizeBars(bars) {
     const close = number(bar.close ?? bar.price);
     return { time: String(bar.time ?? ""), open: number(bar.open ?? close), high: number(bar.high ?? close), low: number(bar.low ?? close), close, volume: number(bar.volume) || 0 };
   }).filter((bar) => /^\d{8}(?:T\d{4,6})?$/.test(bar.time) && [bar.open, bar.high, bar.low, bar.close].every(Number.isFinite)).sort((left, right) => left.time.localeCompare(right.time));
-}
-
-export function annualReturn(bars, tradingDays = 252) {
-  const normalized = normalizeBars(bars); const base = normalized.at(-tradingDays - 1); const last = normalized.at(-1);
-  return base && last && base.close > 0 ? Number(((last.close / base.close - 1) * 100).toFixed(2)) : null;
 }
 
 export function sma(bars, period) {
@@ -143,8 +140,6 @@ export function timeLabel(time, unit) {
   return unit === "월" ? `${value.slice(4, 6)}월` : `${value.slice(4, 6)}/${value.slice(6, 8)}`;
 }
 
-const rangeBars = (bars, range) => barsForRange(bars, range);
-
 export function indicatorValues(daily, bars, unit, period, calculate = sma) {
   if (!["일", "주", "월"].includes(unit)) return calculate(bars, period);
   const normalized = normalizeBars(daily);
@@ -155,10 +150,14 @@ export function indicatorValues(daily, bars, unit, period, calculate = sma) {
 
 export const chartWidth = (count, zoom = 1) => Math.max(1080, 1080 + (Math.max(1, count) - 120) * 8 * zoom);
 export const chartScrollLeft = (count, viewportWidth, scrollRight, zoom = 1) => Math.max(0, chartWidth(count, zoom) - viewportWidth - Math.max(0, scrollRight));
+export const chartViewportRange = (count, scrollLeft, viewportWidth, zoom = 1) => {
+  const step = (chartWidth(count, zoom) - 113) / Math.max(count - 1, 1);
+  const start = Math.max(0, Math.floor((scrollLeft - 58) / step)); const end = Math.min(count, Math.ceil((scrollLeft + viewportWidth - 126) / step) + 1);
+  return [start, Math.max(start + 1, end)];
+};
 export const chartViewportBars = (bars, scrollLeft, viewportWidth, zoom = 1) => {
-  const step = (chartWidth(bars.length, zoom) - 113) / Math.max(bars.length - 1, 1);
-  const start = Math.max(0, Math.floor((scrollLeft - 58) / step)); const end = Math.min(bars.length, Math.ceil((scrollLeft + viewportWidth - 126) / step) + 1);
-  return bars.slice(start, Math.max(start + 1, end));
+  const [start, end] = chartViewportRange(bars.length, scrollLeft, viewportWidth, zoom);
+  return bars.slice(start, end);
 };
 export const chartHoverIndex = (count, scrollLeft, pointerX, zoom = 1) => Math.min(Math.max(0, Math.round((scrollLeft + pointerX - 58) / ((chartWidth(count, zoom) - 113) / Math.max(count - 1, 1)))), Math.max(0, count - 1));
 export const purchaseMarkers = (bars, purchases) => (Array.isArray(purchases) ? purchases : []).map((purchase) => {
@@ -177,14 +176,26 @@ function bandPath(values, x, y) {
   return valid.length ? `M${valid.map(({ value, index }) => `${x(index).toFixed(1)} ${y(value.upper).toFixed(1)}`).join(" L")} L${valid.reverse().map(({ value, index }) => `${x(index).toFixed(1)} ${y(value.lower).toFixed(1)}`).join(" L")}Z` : "";
 }
 
-function renderChart(host, item, unit, range, zoom) {
+const renderKeys = new WeakMap();
+
+function renderChart(host, item, unit, range, zoom, indicators, syncCount) {
   const legend = document.getElementById("analysis-chart-legend"); const axis = document.getElementById("analysis-chart-axis");
-  const allBars = aggregateBars(item.bars, unit); const bars = rangeBars(allBars, range);
-  if (!bars.length) { host.textContent = "일별 데이터가 없습니다. 다음 동기화 뒤 다시 확인하세요."; legend.replaceChildren(); axis.replaceChildren(); return []; }
-  const scrollRight = Math.max(0, host.scrollWidth - host.clientWidth - host.scrollLeft); const start = Math.max(0, allBars.length - bars.length); const width = chartWidth(bars.length, zoom); const nextScrollLeft = chartScrollLeft(bars.length, host.clientWidth, scrollRight, zoom); const priceTop = 28; const priceBottom = 290; const volumeTop = 318; const volumeBottom = 378; const rsiTop = 410; const rsiBottom = 470; const macdTop = 510; const macdBottom = 710; const left = 58; const right = width - 112;
-  const bollingerValues = bollinger(bars); const scaleBars = chartViewportBars(bars, nextScrollLeft, host.clientWidth, zoom); const tradeEvents = purchaseMarkersForUnit(unit, bars, item.trades || item.purchases); const visibleTradePrices = tradeEvents.filter(({ index }) => scaleBars.includes(bars[index])).map((trade) => number(trade.price)); const visibleBands = bars.flatMap((bar, index) => scaleBars.includes(bar) ? [bollingerValues[index]?.upper, bollingerValues[index]?.lower] : []).filter(Number.isFinite); const lows = scaleBars.map((bar) => bar.low); const highs = scaleBars.map((bar) => bar.high); const min = Math.min(...lows, number(item.averagePurchasePrice), number(item.lastPrice), ...visibleTradePrices, ...visibleBands); const max = Math.max(...highs, number(item.averagePurchasePrice), number(item.lastPrice), ...visibleTradePrices, ...visibleBands); const padding = Math.max((max - min) * 0.08, 1);
+  const allBars = indicators.bars; const bars = barsForRange(allBars, range);
+  if (!bars.length) { renderKeys.delete(host); host.textContent = "일별 데이터가 없습니다. 다음 동기화 뒤 다시 확인하세요."; legend.replaceChildren(); axis.replaceChildren(); return []; }
+  const scrollRight = Math.max(0, host.scrollWidth - host.clientWidth - host.scrollLeft); const start = Math.max(0, allBars.length - bars.length); const width = chartWidth(bars.length, zoom); const nextScrollLeft = chartScrollLeft(bars.length, host.clientWidth, scrollRight, zoom);
+  const [viewStart, viewEnd] = chartViewportRange(bars.length, nextScrollLeft, host.clientWidth, zoom);
+  // 같은 데이터·단위·기간·확대·보이는 창이면 SVG를 다시 만들지 않아 스크롤마다 전체 재생성을 피한다.
+  const renderKey = `${syncCount}|${unit}|${range}|${zoom}|${viewStart}:${viewEnd}`;
+  if (renderKeys.get(host) === renderKey) return bars;
+  renderKeys.set(host, renderKey);
+  const priceTop = 28; const priceBottom = 290; const volumeTop = 318; const volumeBottom = 378; const rsiTop = 410; const rsiBottom = 470; const macdTop = 510; const macdBottom = 710; const left = 58; const right = width - 112;
+  const bollingerValues = bollinger(bars); const tradeEvents = purchaseMarkersForUnit(unit, bars, item.trades || item.purchases);
+  const visibleTradePrices = []; const lows = []; const highs = []; const visibleBands = [];
+  for (let index = viewStart; index < viewEnd; index += 1) { lows.push(bars[index].low); highs.push(bars[index].high); const band = bollingerValues[index]; if (Number.isFinite(band?.upper)) visibleBands.push(band.upper); if (Number.isFinite(band?.lower)) visibleBands.push(band.lower); }
+  tradeEvents.forEach(({ index, price }) => { if (index >= viewStart && index < viewEnd) visibleTradePrices.push(number(price)); });
+  const min = Math.min(...lows, number(item.averagePurchasePrice), number(item.lastPrice), ...visibleTradePrices, ...visibleBands); const max = Math.max(...highs, number(item.averagePurchasePrice), number(item.lastPrice), ...visibleTradePrices, ...visibleBands); const padding = Math.max((max - min) * 0.08, 1);
   const x = (index) => left + index * (right - left) / Math.max(bars.length - 1, 1); const bodyWidth = Math.max(1, Math.min(8, (right - left) / Math.max(bars.length, 1) * .68)); const y = (value) => priceBottom - (value - min + padding) * (priceBottom - priceTop) / (max - min + padding * 2); const volumeMax = Math.max(...bars.map((bar) => bar.volume), 1); const volumeY = (value) => volumeBottom - value * (volumeBottom - volumeTop) / volumeMax; const rsiY = (value) => rsiBottom - value * (rsiBottom - rsiTop) / 100;
-  const daily = normalizeBars(item.bars); const ma20 = indicatorValues(daily, allBars, unit, 20).slice(start); const ma60 = indicatorValues(daily, allBars, unit, 60).slice(start); const ma120 = indicatorValues(daily, allBars, unit, 120).slice(start); const rsi14 = indicatorValues(daily, allBars, unit, 14, rsi).slice(start); const bollingerUpper = bollingerValues.map((value) => value?.upper ?? null); const bollingerLower = bollingerValues.map((value) => value?.lower ?? null); const macdValues = macd(bars); const macdNumbers = [...macdValues.line, ...macdValues.signal, ...macdValues.histogram].filter(Number.isFinite); const macdLimit = Math.max(...macdNumbers.map(Math.abs), 1); const macdY = (value) => (macdTop + macdBottom) / 2 - value * (macdBottom - macdTop) / (macdLimit * 2); const maUnit = ["일", "주", "월"].includes(unit) ? "일" : unit;
+  const ma20 = indicators.ma20.slice(start); const ma60 = indicators.ma60.slice(start); const ma120 = indicators.ma120.slice(start); const rsi14 = indicators.rsi14.slice(start); const bollingerUpper = bollingerValues.map((value) => value?.upper ?? null); const bollingerLower = bollingerValues.map((value) => value?.lower ?? null); const macdValues = macd(bars); const macdNumbers = [...macdValues.line, ...macdValues.signal, ...macdValues.histogram].filter(Number.isFinite); const macdLimit = Math.max(...macdNumbers.map(Math.abs), 1); const macdY = (value) => (macdTop + macdBottom) / 2 - value * (macdBottom - macdTop) / (macdLimit * 2); const maUnit = ["일", "주", "월"].includes(unit) ? "일" : unit;
   const priceAxis = [0, .25, .5, .75, 1].map((ratio) => ({ value: min - padding + (max - min + padding * 2) * ratio, top: y(min - padding + (max - min + padding * 2) * ratio) })); const grid = priceAxis.map(({ top }) => `<path d="M${left} ${top}H${right}" class="chart-grid"/>`).join("");
   const candles = bars.map((bar, index) => { const center = x(index); const up = bar.close >= bar.open; const bodyTop = y(Math.max(bar.open, bar.close)); const bodyBottom = y(Math.min(bar.open, bar.close)); const color = up ? "up" : "down"; return `<path d="M${center} ${y(bar.high)}V${y(bar.low)}" class="candle ${color}"/><rect x="${center - bodyWidth / 2}" y="${bodyTop}" width="${bodyWidth}" height="${Math.max(bodyBottom - bodyTop, 1)}" class="candle ${color}"/>`; }).join("");
   const volumes = bars.map((bar, index) => `<rect x="${x(index) - bodyWidth / 2}" y="${volumeY(bar.volume)}" width="${bodyWidth}" height="${volumeBottom - volumeY(bar.volume)}" class="volume"/>`).join("");
@@ -192,7 +203,7 @@ function renderChart(host, item, unit, range, zoom) {
   const tradeMarks = tradeEvents.map((trade) => `<path d="M${x(trade.index)} ${priceTop}V${priceBottom}" class="trade-event ${trade.side}"/><circle cx="${x(trade.index)}" cy="${y(number(trade.price))}" r="5" class="trade-dot ${trade.side}"/>`).join("");
   const labelEvery = 20; const positions = bars.flatMap((_, index) => index % labelEvery === 0 || index === bars.length - 1 ? [index] : []);
   const labels = positions.map((index) => `<text x="${x(index)}" y="748" class="chart-axis chart-time">${timeLabel(bars[index].time, unit)}</text>`).join(""); const macdBars = macdValues.histogram.map((value, index) => value === null ? "" : `<rect x="${x(index) - bodyWidth / 2}" y="${Math.min(macdY(value), macdY(0))}" width="${bodyWidth}" height="${Math.abs(macdY(value) - macdY(0))}" class="macd-bar ${value >= 0 ? "up" : "down"}"/>`).join("");
-  host.innerHTML = `<svg class="holding-chart" style="width:${width}px;height:755px" viewBox="0 0 ${width} 755" role="img" aria-label="${item.name} 가격, 거래량, RSI, MACD 차트"><g>${grid}<path d="${bandPath(bollingerValues, x, y)}" class="bollinger-band"/><path d="${linePath(bollingerUpper, x, y)}" class="bollinger-line"/><path d="${linePath(bollingerLower, x, y)}" class="bollinger-line"/>${candles}<path d="${linePath(ma20, x, y)}" class="ma20"/><path d="${linePath(ma60, x, y)}" class="ma60"/><path d="${linePath(ma120, x, y)}" class="ma120"/>${marker(number(item.averagePurchasePrice), "purchase")}${marker(number(item.lastPrice), "current")}${tradeMarks}</g><g><text x="${left}" y="${volumeTop - 9}" class="chart-label">거래량</text><path d="M${left} ${volumeBottom}H${right}" class="chart-grid"/>${volumes}</g><g><text x="${left}" y="${rsiTop - 9}" class="chart-label">RSI 14</text><path d="M${left} ${rsiY(70)}H${right}M${left} ${rsiY(30)}H${right}" class="rsi-grid"/><path d="${linePath(rsi14, x, rsiY)}" class="rsi"/><text x="${right + 10}" y="${rsiY(70) + 4}" class="chart-axis">70</text><text x="${right + 10}" y="${rsiY(30) + 4}" class="chart-axis">30</text></g><g><text x="${left}" y="${macdTop - 9}" class="chart-label">MACD 12·26·9</text><path d="M${left} ${macdY(0)}H${right}" class="rsi-grid"/>${macdBars}<path d="${linePath(macdValues.line, x, macdY)}" class="macd-line"/><path d="${linePath(macdValues.signal, x, macdY)}" class="macd-signal"/>${labels}</g><path class="chart-crosshair" d="M0 0V755" hidden=""/></svg>`;
+  host.innerHTML = `<svg class="holding-chart" style="width:${width}px;height:755px" viewBox="0 0 ${width} 755" role="img" aria-label="${esc(item.name)} 가격, 거래량, RSI, MACD 차트"><g>${grid}<path d="${bandPath(bollingerValues, x, y)}" class="bollinger-band"/><path d="${linePath(bollingerUpper, x, y)}" class="bollinger-line"/><path d="${linePath(bollingerLower, x, y)}" class="bollinger-line"/>${candles}<path d="${linePath(ma20, x, y)}" class="ma20"/><path d="${linePath(ma60, x, y)}" class="ma60"/><path d="${linePath(ma120, x, y)}" class="ma120"/>${marker(number(item.averagePurchasePrice), "purchase")}${marker(number(item.lastPrice), "current")}${tradeMarks}</g><g><text x="${left}" y="${volumeTop - 9}" class="chart-label">거래량</text><path d="M${left} ${volumeBottom}H${right}" class="chart-grid"/>${volumes}</g><g><text x="${left}" y="${rsiTop - 9}" class="chart-label">RSI 14</text><path d="M${left} ${rsiY(70)}H${right}M${left} ${rsiY(30)}H${right}" class="rsi-grid"/><path d="${linePath(rsi14, x, rsiY)}" class="rsi"/><text x="${right + 10}" y="${rsiY(70) + 4}" class="chart-axis">70</text><text x="${right + 10}" y="${rsiY(30) + 4}" class="chart-axis">30</text></g><g><text x="${left}" y="${macdTop - 9}" class="chart-label">MACD 12·26·9</text><path d="M${left} ${macdY(0)}H${right}" class="rsi-grid"/>${macdBars}<path d="${linePath(macdValues.line, x, macdY)}" class="macd-line"/><path d="${linePath(macdValues.signal, x, macdY)}" class="macd-signal"/>${labels}</g><path class="chart-crosshair" d="M0 0V755" hidden=""/></svg>`;
   legend.innerHTML = `<span class="ma20">20${maUnit}선</span><span class="ma60">60${maUnit}선</span><span class="ma120">120${maUnit}선</span><span class="bollinger">BB 20·2</span><span class="trade-buy">● 매수</span><span class="trade-sell">● 매도</span><span class="zoom">×${zoom.toFixed(2)}</span>`; const priceNotes = [{ label: "평균", value: number(item.averagePurchasePrice), cls: "purchase" }, { label: "현재", value: number(item.lastPrice), cls: "current" }].filter(({ value }) => Number.isFinite(value) && value > 0).sort((left, right) => y(left.value) - y(right.value)); let previousLabelTop = -Infinity; const placedPriceNotes = priceNotes.map((note) => ({ ...note, labelTop: previousLabelTop = Math.max(y(note.value), previousLabelTop + 22) })); axis.innerHTML = `${priceAxis.map(({ value, top }) => `<span class="axis-tick" style="top:${top - 9}px">${Math.round(value).toLocaleString("ko-KR")}</span>`).join("")}${placedPriceNotes.map(({ label, value, cls, labelTop }) => `<span class="axis-price ${cls}" style="top:${labelTop}px">${label} ${won(value)}</span>`).join("")}`;
   requestAnimationFrame(() => { host.scrollLeft = nextScrollLeft; }); return bars;
 }
@@ -202,18 +213,41 @@ async function init() {
   if (!token) { if (new URLSearchParams(location.search).has("login")) location.replace(`${API_BASE}/auth/github`); else { holdings.textContent = "GitHub 로그인 후 보유종목을 불러옵니다."; host.textContent = "메인 페이지에서 GitHub 로그인 후 다시 열어주세요."; } return; }
   let selectedSymbol = localStorage.getItem(ANALYSIS_STORAGE_KEY) || ""; let selectedRange = localStorage.getItem(ANALYSIS_RANGE_STORAGE_KEY) || "전체"; let selectedUnit = localStorage.getItem(ANALYSIS_UNIT_STORAGE_KEY) || "일";
   if (!Object.hasOwn(ANALYSIS_RANGES, selectedRange)) selectedRange = "전체"; if (!ANALYSIS_UNITS.includes(selectedUnit)) selectedUnit = "일";
-  let items = []; let chartBars = []; let chartCurrency = "KRW"; let chartZoom = Math.min(3, Math.max(.35, Number(localStorage.getItem(ANALYSIS_ZOOM_STORAGE_KEY)) || 1)); let rendering = false; let renderedScrollLeft = -1; let scrollFrame;
+  let items = []; let chartBars = []; let chartCurrency = "KRW"; let chartZoom = Math.min(3, Math.max(.35, Number(localStorage.getItem(ANALYSIS_ZOOM_STORAGE_KEY)) || 1)); let rendering = false; let renderedScrollLeft = -1; let scrollFrame; let syncCount = 0; let crosshairEl = null;
+  const tooltip = document.getElementById("analysis-chart-tooltip");
+  // 단위 집계와 지표는 데이터·단위별로 캐싱해 스크롤마다 전체 일봉을 다시 계산하지 않는다.
+  const indicatorCache = new Map();
+  const unitData = (item, unit) => {
+    const key = `${item.symbol}|${unit}`; let entry = indicatorCache.get(key);
+    if (!entry) {
+      const daily = normalizeBars(item.bars); const bars = aggregateBars(daily, unit);
+      entry = { bars, ma20: indicatorValues(daily, bars, unit, 20), ma60: indicatorValues(daily, bars, unit, 60), ma120: indicatorValues(daily, bars, unit, 120), rsi14: indicatorValues(daily, bars, unit, 14, rsi) };
+      indicatorCache.set(key, entry);
+    }
+    return entry;
+  };
+  let renderedHoldings = ""; let renderedUnits = ""; let renderedRanges = "";
   const render = () => {
     rendering = true; renderedScrollLeft = host.scrollLeft;
     const selected = items.find((item) => item.symbol === selectedSymbol) || items[0]; if (!selected) return;
-    holdings.replaceChildren(...items.map((item) => { const button = document.createElement("button"); button.type = "button"; button.className = item.symbol === selected.symbol ? "selected" : ""; button.textContent = `${item.name} (${item.symbol})`; button.onclick = () => { selectedSymbol = item.symbol; localStorage.setItem(ANALYSIS_STORAGE_KEY, selectedSymbol); render(); }; return button; }));
-    units.replaceChildren(...ANALYSIS_UNITS.map((unit) => { const button = document.createElement("button"); button.type = "button"; button.className = unit === selectedUnit ? "selected" : ""; button.textContent = unit; button.onclick = () => { selectedUnit = unit; localStorage.setItem(ANALYSIS_UNIT_STORAGE_KEY, unit); render(); }; return button; }));
-    ranges.replaceChildren(...Object.keys(ANALYSIS_RANGES).map((range) => { const button = document.createElement("button"); button.type = "button"; button.className = range === selectedRange ? "selected" : ""; button.textContent = range; button.onclick = () => { selectedRange = range; localStorage.setItem(ANALYSIS_RANGE_STORAGE_KEY, range); render(); }; return button; }));
-    chartCurrency = selected.currency || "KRW"; chartBars = renderChart(host, selected, selectedUnit, selectedRange, chartZoom);
+    const holdingsKey = `${items.map((item) => item.symbol).join(",")}|${selected.symbol}`;
+    if (holdingsKey !== renderedHoldings) { renderedHoldings = holdingsKey; holdings.replaceChildren(...items.map((item) => { const button = document.createElement("button"); button.type = "button"; button.className = item.symbol === selected.symbol ? "selected" : ""; button.textContent = `${item.name} (${item.symbol})`; button.onclick = () => { selectedSymbol = item.symbol; localStorage.setItem(ANALYSIS_STORAGE_KEY, selectedSymbol); render(); }; return button; })); }
+    if (selectedUnit !== renderedUnits) { renderedUnits = selectedUnit; units.replaceChildren(...ANALYSIS_UNITS.map((unit) => { const button = document.createElement("button"); button.type = "button"; button.className = unit === selectedUnit ? "selected" : ""; button.textContent = unit; button.onclick = () => { selectedUnit = unit; localStorage.setItem(ANALYSIS_UNIT_STORAGE_KEY, unit); render(); }; return button; })); }
+    if (selectedRange !== renderedRanges) { renderedRanges = selectedRange; ranges.replaceChildren(...Object.keys(ANALYSIS_RANGES).map((range) => { const button = document.createElement("button"); button.type = "button"; button.className = range === selectedRange ? "selected" : ""; button.textContent = range; button.onclick = () => { selectedRange = range; localStorage.setItem(ANALYSIS_RANGE_STORAGE_KEY, range); render(); }; return button; })); }
+    chartCurrency = selected.currency || "KRW"; chartBars = renderChart(host, selected, selectedUnit, selectedRange, chartZoom, unitData(selected, selectedUnit), syncCount);
+    crosshairEl = host.querySelector(".chart-crosshair");
     requestAnimationFrame(() => { rendering = false; renderedScrollLeft = host.scrollLeft; });
   };
   host.addEventListener("scroll", () => { if (rendering || Math.abs(host.scrollLeft - renderedScrollLeft) < 1) return; cancelAnimationFrame(scrollFrame); scrollFrame = requestAnimationFrame(render); });
-  host.addEventListener("pointermove", (event) => { const crosshair = host.querySelector(".chart-crosshair"); if (!crosshair) return; const bounds = host.getBoundingClientRect(); const pointerX = event.clientX - bounds.left; const index = chartHoverIndex(host.querySelectorAll(".candle").length / 2, host.scrollLeft, pointerX, chartZoom); const svg = host.querySelector("svg"); const width = Number(svg?.viewBox.baseVal.width) || 0; const x = 58 + index * (width - 170) / Math.max(index ? host.querySelectorAll(".candle").length / 2 - 1 : 1, 1); const hoverY = Math.max(28, Math.min(740, event.clientY - bounds.top)); crosshair.setAttribute("d", `M${x} 28V740 M58 ${hoverY}H${width - 112}`); crosshair.removeAttribute("hidden"); const bar = chartBars[index]; const tooltip = document.getElementById("analysis-chart-tooltip"); if (!bar || !tooltip) return; tooltip.textContent = `${timeLabel(bar.time, selectedUnit)} · 종가 ${money(bar.close, chartCurrency)}`; tooltip.removeAttribute("hidden"); tooltip.style.left = `${Math.max(8, Math.min(host.clientWidth - tooltip.offsetWidth - 8, pointerX + 12))}px`; tooltip.style.top = `${Math.max(8, Math.min(host.clientHeight - tooltip.offsetHeight - 8, event.clientY - bounds.top + 12))}px`; });
+  host.addEventListener("pointermove", (event) => {
+    const crosshair = crosshairEl; const count = chartBars.length; if (!crosshair || !count) return;
+    const bounds = host.getBoundingClientRect(); const pointerX = event.clientX - bounds.left;
+    const index = chartHoverIndex(count, host.scrollLeft, pointerX, chartZoom); const width = chartWidth(count, chartZoom);
+    const x = 58 + index * (width - 170) / Math.max(index ? count - 1 : 1, 1); const hoverY = Math.max(28, Math.min(740, event.clientY - bounds.top));
+    crosshair.setAttribute("d", `M${x} 28V740 M58 ${hoverY}H${width - 112}`); crosshair.removeAttribute("hidden");
+    const bar = chartBars[index]; if (!bar || !tooltip) return;
+    tooltip.textContent = `${timeLabel(bar.time, selectedUnit)} · 종가 ${money(bar.close, chartCurrency)}`; tooltip.removeAttribute("hidden"); tooltip.style.left = `${Math.max(8, Math.min(host.clientWidth - tooltip.offsetWidth - 8, pointerX + 12))}px`; tooltip.style.top = `${Math.max(8, Math.min(host.clientHeight - tooltip.offsetHeight - 8, event.clientY - bounds.top + 12))}px`;
+  });
   host.addEventListener("pointerleave", () => { const crosshair = host.querySelector(".chart-crosshair"); if (crosshair) crosshair.setAttribute("hidden", ""); document.getElementById("analysis-chart-tooltip")?.setAttribute("hidden", ""); });
   host.addEventListener("wheel", (event) => { if (!event.shiftKey) return; event.preventDefault(); chartZoom = Math.min(3, Math.max(.35, chartZoom * (event.deltaY < 0 ? 1.15 : 1 / 1.15))); localStorage.setItem(ANALYSIS_ZOOM_STORAGE_KEY, String(chartZoom)); render(); }, { passive: false });
   const load = async () => {
@@ -223,6 +257,7 @@ async function init() {
     const snapshot = await portfolio.json(); if (!Array.isArray(snapshot.accounts)) throw new Error("보유 정보 응답 형식이 올바르지 않습니다.");
     renderActualAllocation(snapshot); renderHoldings(snapshot); renderPortfolioPerformance(snapshot); status.textContent = `${snapshot.accounts.length}개 계좌 · ${new Date(snapshot.updatedAt).toLocaleString("ko-KR")} 동기화`;
     items = snapshot.accounts.flatMap((account) => (Array.isArray(account.items) ? account.items : []).map((item) => ({ ...item, provider: account.provider }))).filter((item) => normalizeBars(item.bars).length);
+    syncCount += 1; indicatorCache.clear();
     if (!items.length) { holdings.textContent = "일별 데이터가 없습니다."; host.textContent = "보유종목 일별 데이터가 아직 동기화되지 않았습니다."; return; }
     render();
   };

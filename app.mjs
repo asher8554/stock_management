@@ -1,4 +1,5 @@
 // 목표 자산배분 화면과 개인 연결 안내를 제어한다.
+import { API_BASE } from "./api.mjs";
 
 const names = ["cash", "stock", "defense"];
 const saved = JSON.parse(localStorage.getItem("allocation") || "{\"cash\":10,\"stock\":60,\"defense\":30}");
@@ -14,7 +15,6 @@ function render() {
 }
 
 const dialog = document.getElementById("private-dialog");
-const apiBase = "https://stock-management-private-api.household-account-asher.workers.dev";
 const loginUrl = document.getElementById("access-login").href;
 const sessionKey = "github-session";
 const callbackToken = new URLSearchParams(location.hash.slice(1)).get("github-auth");
@@ -46,7 +46,7 @@ function renderMarket(payload) {
   document.getElementById("refresh").textContent = `시장 데이터 ${new Date(payload.updatedAt).toLocaleString("ko-KR")} 갱신`;
 }
 async function loadMarket() {
-  const response = await fetch(`${apiBase}/v1/market`).catch(() => null);
+  const response = await fetch(`${API_BASE}/v1/market`).catch(() => null);
   if (response?.ok) renderMarket(await response.json());
 }
 render();
