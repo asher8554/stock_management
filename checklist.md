@@ -214,4 +214,4 @@
 # Buy and sell markers
 - [x] Fetch buy and sell executions in the KIS snapshot.
 - [x] Render color-coded dots and one legend entry per side.
-- [ ] Test, deploy, and verify static bundle.
+- [x] Test, deploy, and verify static bundle.
