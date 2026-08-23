@@ -184,3 +184,12 @@
 # Yearly returns page
 
 1. Add a private page that groups available holding daily bars by calendar year and shows one return card per year. Verify: the page states that cash and cash flows are excluded.
+
+# 2026-08-23 전반 최적화·리팩토링
+
+1. 근거 있는 죽은 코드를 제거한다. 대상: `sync_portfolio.py kis_intraday_bars`(호출부 없음), `analysis.mjs annualReturn`(UI 제거된 잔재). 검증: node --test, py_compile.
+2. 분석 차트 핫패스를 최적화한다. 단위 집계와 지표 계산을 데이터 버전·단위별로 캐시하고, 뷰포트 스케일을 객체 includes 대신 인덱스 범위로 계산하며, 보이는 창이 변하지 않으면 SVG 재생성을 건너뛴다. 검증: 기존 차트 테스트 유지.
+3. `API_BASE` 중복(app·analysis·returns)을 하나의 공유 모듈로 모은다. 검증: node --check, 테스트.
+4. 미추적 로그·캐시 산출물을 정리하고 .gitignore에 패턴을 추가한다. 검증: git status.
+5. 사용자 확인이 필요한 항목은 질문 뒤에만 진행한다. 대상: 토스증권 연동 제거 여부, `icon` 원본 이미지 삭제 여부.
+6. 완료 후 `$project-hardening-docs`로 인계한다.

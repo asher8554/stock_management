@@ -227,3 +227,30 @@
 
 # 2026-08-23 yearly return detail modal
 - Year cards now open a native dialog with each holding's symbol, date range, first and last close, and return for that year.
+
+# 2026-08-23 optimization baseline
+- Baseline verified before changes: node --test "tests/*.test.mjs" passes 18/18; python -m py_compile passes for sync_portfolio.py, realtime_collector.py, backfill_intraday.py, tests/test_sync_portfolio.py.
+- Evidence for dead code: kis_intraday_bars has zero call sites (backfill_intraday.py owns its own day_bars); nnualReturn is imported only by its test after the annual-return card was intentionally removed.
+- Kept intentionally: Worker GET /v1/realtime and GET /v1/intraday have no frontend consumer since the daily-only chart refactor, but the Synology collector still POSTs /v1/realtime and backfill posts /v1/intraday; removal would change deployed API behavior and needs user confirmation. Not removed by default.
+- Untracked artifacts found: six .backfill/.worker-tail logs (largest 11MB), __pycache__/, .playwright-cli/, and icon (1.4MB PNG without extension, likely the portfolio-mark source). Deletion of icon and toss support requires user confirmation.
+
+# 2026-08-23 optimization result
+- Removed: toss support (toss_credentials, holding_item, toss_account, main() branch), kis_intraday_bars (zero call sites), analysis.mjs annualReturn + its test assertion. portfolio.mjs provider label now maps only kis to 한국투자증권.
+- Chart hot path: aggregation + ma20/60/120/rsi cached per symbol|unit and cleared on each snapshot load; viewport scale uses numeric index range (new chartViewportRange export) instead of object includes scans; SVG rebuild skipped when syncCount|unit|range|zoom|view window unchanged; holdings/unit/range buttons rebuilt only when their selection changes; pointermove reuses cached crosshair element, chartBars.length, and chartWidth instead of querySelectorAll.
+- API_BASE centralized in new api.mjs imported by app.mjs, analysis.mjs, returns.mjs; script query versions bumped in index.html (20260823-12), analysis.html (20260823-40), returns.html (20260823-3).
+- User-approved deletions: toss integration, root icon PNG, backfill/worker-tail logs, __pycache__, .playwright-cli. .gitignore now covers *.log and .playwright-cli/.
+- Kept by decision: Worker GET /v1/realtime and GET /v1/intraday remain deployed because the Synology collector still POSTs realtime and backfill posts intraday; no frontend reads them since the daily-only chart refactor.
+- Verification after changes: node --check all mjs OK; node --test 18/18; py_compile OK; python unittest 4/4; strict UTF-8 decode OK; git diff --check clean.
+
+# 2026-08-23 security review (daily mode)
+- Secrets: .env untracked; full-history scan found no real secret values (only empty example assignments). PASS.
+- OAuth/session/CORS verified in worker.mjs: state cookie HttpOnly+Secure+SameSite=Lax+600s, single allowed login, HMAC session with expiry, single-origin CORS. PASS.
+- XSS fixed with minimal esc() in analysis.mjs (svg aria-label item.name) and returns.mjs (detail name/symbol). Other interpolated values are numeric or regex-validated dates.
+- Accepted risks: INGEST_TOKEN comparison not constant-time; public /v1/market has no app-level rate limit beyond Cloudflare platform; collector container runs as root on private Synology network; session token passes through URL fragment into sessionStorage.
+- Kept endpoints without frontend consumers: GET /v1/realtime, GET /v1/intraday (collector/backfill still POST). Removal is a future decision.
+- Deliverable: docs/project-hardening.html (final-state architecture, Mermaid flow, commands, security posture, risks).
+
+# 2026-08-23 minute chart final decision
+- User confirmed the minute/hour chart UI will not return. Removed the whole intraday storage path: backfill_intraday.py deleted, Worker POST/GET /v1/intraday removed, worker.test.mjs now asserts both routes respond 404.
+- Realtime collector (NAS) and /v1/realtime POST+GET stay as accepted per user instruction. Old KV keys under intraday:* remain until manually deleted in the Cloudflare dashboard.
+- Worker changes require wrangler deploy to take effect; deployment was not run in this session.

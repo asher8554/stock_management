@@ -1,34 +1,34 @@
-# 작업 체크리스트
+﻿# ?묒뾽 泥댄겕由ъ뒪??
 
-- [x] 현재 프로젝트 설정 파일 상태 확인
-- [x] 컨텍스트 압축 복구 규칙 및 언어 정책 추가
-- [x] UTF-8 및 필수 문구 검증
-- [x] 계좌·시장 데이터·차트 제공 방식 조사
-- [x] PRD 초안 작성
-- [x] 문서·UTF-8 검증 및 커밋
-- [x] 공개 Pages·개인 API·1분 갱신 제약 조사
-- [x] PRD의 보안 구조와 자산배분 편집기 보완
-- [x] 문서·UTF-8 검증 및 커밋
-- [x] 공개 페이지·개인 API 보안 요구사항 확정
-- [x] 정적 대시보드와 목표 비중 편집기 구현
-- [x] 개인 연결 입구와 보안 안내 구현
-- [x] 정적 페이지 검증 및 커밋
-- [x] Cloudflare 인증 상태 확인
-- [x] Worker 읽기 전용 API와 1분 갱신 구현
-- [ ] Access 허용 이메일과 API 비밀값 설정
-- [x] Worker 배포 검증 및 커밋
-- [x] 공개 파일·Worker 설정의 관리자 이메일 제거
-- [x] 다크 테마 적용
-- [x] 재배포·공개 산출물 검증
-- [ ] 공개 Git 이력 정리 여부 확인
-## 2026-08-21 우준우 계좌 현황
+- [x] ?꾩옱 ?꾨줈?앺듃 ?ㅼ젙 ?뚯씪 ?곹깭 ?뺤씤
+- [x] 而⑦뀓?ㅽ듃 ?뺤텞 蹂듦뎄 洹쒖튃 諛??몄뼱 ?뺤콉 異붽?
+- [x] UTF-8 諛??꾩닔 臾멸뎄 寃利?
+- [x] 怨꾩쥖쨌?쒖옣 ?곗씠?걔룹감???쒓났 諛⑹떇 議곗궗
+- [x] PRD 珥덉븞 ?묒꽦
+- [x] 臾몄꽌쨌UTF-8 寃利?諛?而ㅻ컠
+- [x] 怨듦컻 Pages쨌媛쒖씤 API쨌1遺?媛깆떊 ?쒖빟 議곗궗
+- [x] PRD??蹂댁븞 援ъ“? ?먯궛諛곕텇 ?몄쭛湲?蹂댁셿
+- [x] 臾몄꽌쨌UTF-8 寃利?諛?而ㅻ컠
+- [x] 怨듦컻 ?섏씠吏쨌媛쒖씤 API 蹂댁븞 ?붽뎄?ы빆 ?뺤젙
+- [x] ?뺤쟻 ??쒕낫?쒖? 紐⑺몴 鍮꾩쨷 ?몄쭛湲?援ы쁽
+- [x] 媛쒖씤 ?곌껐 ?낃뎄? 蹂댁븞 ?덈궡 援ы쁽
+- [x] ?뺤쟻 ?섏씠吏 寃利?諛?而ㅻ컠
+- [x] Cloudflare ?몄쬆 ?곹깭 ?뺤씤
+- [x] Worker ?쎄린 ?꾩슜 API? 1遺?媛깆떊 援ы쁽
+- [ ] Access ?덉슜 ?대찓?쇨낵 API 鍮꾨?媛??ㅼ젙
+- [x] Worker 諛고룷 寃利?諛?而ㅻ컠
+- [x] 怨듦컻 ?뚯씪쨌Worker ?ㅼ젙??愿由ъ옄 ?대찓???쒓굅
+- [x] ?ㅽ겕 ?뚮쭏 ?곸슜
+- [x] ?щ같??룰났媛??곗텧臾?寃利?
+- [ ] 怨듦컻 Git ?대젰 ?뺣━ ?щ? ?뺤씤
+## 2026-08-21 ?곗???怨꾩쥖 ?꾪솴
 
-- [x] 토스증권 Open API 환경 변수 호환
-- [x] 비공개 계좌·보유 종목 표시
-- [x] 테스트·구문·공개 노출 여부 검증
-- [x] Worker 수집 URL·토큰 설정 후 실제 동기화
-- [x] 토스증권 WTS 허용 IP 등록 후 동기화 재시도
-- [x] 관리자 진입 길게 누르기 3초 변경
+- [x] ?좎뒪利앷텒 Open API ?섍꼍 蹂???명솚
+- [x] 鍮꾧났媛?怨꾩쥖쨌蹂댁쑀 醫낅ぉ ?쒖떆
+- [x] ?뚯뒪?맞룰뎄臾맞룰났媛??몄텧 ?щ? 寃利?
+- [x] Worker ?섏쭛 URL쨌?좏겙 ?ㅼ젙 ???ㅼ젣 ?숆린??
+- [x] ?좎뒪利앷텒 WTS ?덉슜 IP ?깅줉 ???숆린???ъ떆??
+- [x] 愿由ъ옄 吏꾩엯 湲멸쾶 ?꾨Ⅴ湲?3珥?蹂寃?
 # KIS account switch
 - [x] KIS credentials configured locally.
 - [ ] Run KIS portfolio sync and verify snapshot.
@@ -41,7 +41,7 @@
 - [x] Verify private dashboard renders the holding.
 - [x] Label the account and KIS provider correctly.
 # KIS account title
-- [x] Rename the private account title to 한국투자증권 계좌.
+- [x] Rename the private account title to ?쒓뎅?ъ옄利앷텒 怨꾩쥖.
 # Actual allocation and market metrics
 - [x] Design approved.
 - [x] Design specification written.
@@ -79,7 +79,7 @@
 - [x] Validate, deploy, and verify the route.
 
 # TradingView widget compatibility
-- [x] Replace the unavailable KODEX 코스피100 default with a widget-supported symbol.
+- [x] Replace the unavailable KODEX 肄붿뒪??00 default with a widget-supported symbol.
 - [x] Reset the previously saved unavailable default and show a clear inline message.
 
 # Target bar alignment
@@ -136,7 +136,7 @@
 
 # Price axis and MACD
 - [x] Show current price and average purchase price on the fixed right price axis.
-- [x] Add a MACD 12·26·9 panel below RSI.
+- [x] Add a MACD 12쨌26쨌9 panel below RSI.
 
 # MACD and time zoom
 - [x] Expand the MACD panel for readable bars and lines.
@@ -222,3 +222,20 @@
 - [x] Calculate holding daily-bar returns by calendar year.
 - [x] Test, deploy, and verify the static bundle.
 - [x] Open a year card to inspect per-holding dates, prices, and returns.
+
+# 2026-08-23 ?꾨컲 理쒖쟻?붋룸━?⑺넗留?- [x] ?뚯뒪??湲곗????뺣낫 (node --test 18媛??듦낵, py_compile ?듦낵)
+- [ ] sync_portfolio.py kis_intraday_bars ?쒓굅
+- [ ] analysis.mjs annualReturn 諛??뚯뒪??assertion ?쒓굅
+- [ ] 李⑦듃 吏??罹먯떆 + 酉고룷???몃뜳??踰붿쐞 怨꾩궛 + 遺덈? 李??ъ깮???앸왂
+- [ ] pointermove DOM 荑쇰━ 罹먯떛
+- [ ] API_BASE 怨듭쑀 紐⑤뱢 ?듯빀
+- [ ] 濡쒓렇 ?곗텧臾??뺣━ 諛?.gitignore 媛깆떊
+- [ ] ?ъ슜???뺤씤: ?좎뒪利앷텒 ?곕룞 ?쒓굅 ?щ?, icon ?뚯씪 ??젣 ?щ?
+- [ ] ?꾩껜 寃利???project-hardening-docs ?멸퀎
+
+# 2026-08-23 hardening-docs 인계
+- [x] cso 일일 보안 검토 (시크릿·OAuth·세션·CORS 통과, XSS 수정, 수용 리스크 기록)
+- [x] docs/project-hardening.html 최종 상태 문서 생성(Mermaid 포함)
+- [ ] 커밋 여부는 사용자 결정 대기
+- [x] 사용자 확정: 분봉 UI 미재개 → backfill_intraday.py·Worker /v1/intraday 제거, 테스트 404 전환
+- [x] 실시간 수집기와 나머지 항목 그대로 수용
