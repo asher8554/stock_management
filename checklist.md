@@ -216,3 +216,8 @@
 - [x] Render color-coded dots and one legend entry per side.
 - [x] Test, deploy, and verify static bundle.
 - [x] Increase marker contrast and render trade guides above chart overlays.
+
+# Yearly returns page
+- [x] Add the authenticated yearly returns route and navigation.
+- [x] Calculate holding daily-bar returns by calendar year.
+- [x] Test, deploy, and verify the static bundle.

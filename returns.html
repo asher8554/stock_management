@@ -1,0 +1,27 @@
+<!-- 연도별 보유종목 수익률을 보여주는 인증 전용 페이지 -->
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="연도별 수익률">
+  <title>연도별 수익률</title>
+  <link rel="stylesheet" href="styles.css?v=20260823-20">
+</head>
+<body>
+  <header>
+    <a id="mark" href="index.html" aria-label="포트폴리오 메인으로"><img src="assets/portfolio-mark.png" alt=""></a>
+    <div><p class="eyebrow">PORTFOLIO / RETURNS</p><h1>연도별 수익률</h1></div>
+    <nav class="header-nav" aria-label="페이지 이동"><a class="settings-link" href="index.html">메인</a><a class="settings-link" href="analysis.html">분석</a><a class="settings-link" href="settings.html">설정</a></nav>
+  </header>
+  <main class="returns-main">
+    <section aria-labelledby="returns-title">
+      <p class="eyebrow">YEARLY PERFORMANCE</p><h2 id="returns-title">년도별 수익률</h2>
+      <p id="returns-status" class="hint">인증 후 연도별 수익률을 불러옵니다.</p>
+      <div id="yearly-returns" class="yearly-returns" aria-live="polite"></div>
+      <p class="returns-note">보유종목 일봉의 해당 연도 첫 종가와 마지막 종가 기준입니다. 현금 잔액과 계좌 입출금은 과거 시계열이 없어 계산에서 제외됩니다.</p>
+    </section>
+  </main>
+  <script type="module" src="returns.mjs?v=20260823-1"></script>
+</body>
+</html>

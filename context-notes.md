@@ -221,3 +221,6 @@
 
 # 2026-08-23 trade marker contrast
 - Trade guides are now thicker, opaque, and rendered after price overlays so buy/sell colors remain visible on the daily chart. Asset versions were bumped to avoid stale GitHub Pages CSS/JS.
+
+# 2026-08-23 yearly returns page
+- Added a separate authenticated yearly-return view based on each holding's available daily bars. Cash and account cash flows are explicitly excluded because the current private snapshot has no historical cash-flow series.

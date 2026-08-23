@@ -180,3 +180,7 @@
 # Buy and sell markers
 
 1. Fetch buy and sell executions and render one color-coded legend without overlapping text labels. Verify: daily chart shows colored trade dots and guides.
+
+# Yearly returns page
+
+1. Add a private page that groups available holding daily bars by calendar year and shows one return card per year. Verify: the page states that cash and cash flows are excluded.
