@@ -209,4 +209,4 @@
 
 # Data-backed yearly return
 - [x] Show only the calendar-year return when baseline and current data share a year.
-- [ ] Test, deploy, and verify static bundle.
+- [x] Test, deploy, and verify static bundle.
