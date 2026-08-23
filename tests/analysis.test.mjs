@@ -77,6 +77,7 @@ test("account return and annual return use cost basis and 252 trading days", () 
   assert.equal(cumulativeReturn([{ averagePurchasePrice: 100, quantity: 2, marketValue: 220 }]), 10);
   assert.deepEqual(portfolioTotals([{ averagePurchasePrice: 100, quantity: 2, marketValue: 220 }]), { cost: 200, value: 220 });
   assert.deepEqual(accountTotals({ accounts: [{ cash: 500, items: [{ averagePurchasePrice: 100, quantity: 2, marketValue: 220 }] }] }), { cost: 700, value: 720 });
-  assert.deepEqual(accountPerformance({ cost: 700, capturedAt: "2026-01-01T00:00:00.000Z" }, { value: 770 }, "2026-01-31T00:00:00.000Z"), { cumulative: 10, annualized: 218.87, elapsedDays: 30 });
+  assert.deepEqual(accountPerformance({ cost: 700, capturedAt: "2026-01-01T00:00:00.000Z" }, { value: 770 }, "2026-01-31T00:00:00.000Z"), { cumulative: 10, annualized: 218.87, elapsedDays: 30, year: 2026 });
+  assert.equal(accountPerformance({ cost: 700, capturedAt: "2025-12-31T00:00:00.000Z" }, { value: 770 }, "2026-01-31T00:00:00.000Z").year, null);
   assert.equal(annualReturn(Array.from({ length: 253 }, (_, index) => ({ time: `2025${String(index).padStart(4, "0")}`, open: 100 + index, high: 100 + index, low: 100 + index, close: 100 + index }))), 252);
 });

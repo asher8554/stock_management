@@ -172,3 +172,7 @@
 # Account performance baseline
 
 1. Save the current cash plus stock-cost total as a browser baseline. Verify: future cumulative and annualized returns use that fixed baseline.
+
+# Data-backed yearly return
+
+1. Show the current calendar-year return only when the saved baseline and current data belong to the same year. Verify: years without data render no yearly card.

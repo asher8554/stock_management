@@ -212,3 +212,6 @@
 
 # 2026-08-22 account performance baseline
 - The current cash plus held-stock cost is saved once in browser storage as the account baseline. Cumulative return uses that fixed amount; annualized return begins after 30 elapsed days to avoid one-day annualization distortion.
+
+# 2026-08-23 data-backed yearly return
+- The annualized card is replaced by a calendar-year return card only when baseline and current snapshot share a year. No card appears for years without account data.

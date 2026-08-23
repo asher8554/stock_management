@@ -48,10 +48,11 @@ export function accountTotals(snapshot) {
 }
 
 export function accountPerformance(baseline, totals, now = Date.now()) {
-  const cost = number(baseline?.cost); const elapsedDays = (new Date(now).getTime() - new Date(baseline?.capturedAt).getTime()) / 86_400_000;
+  const cost = number(baseline?.cost); const baselineDate = new Date(baseline?.capturedAt); const currentDate = new Date(now); const elapsedDays = (currentDate.getTime() - baselineDate.getTime()) / 86_400_000;
   const cumulative = cost > 0 && Number.isFinite(totals.value) ? Number(((totals.value / cost - 1) * 100).toFixed(2)) : null;
   const annualized = cumulative !== null && elapsedDays >= 30 ? Number((((totals.value / cost) ** (365 / elapsedDays) - 1) * 100).toFixed(2)) : null;
-  return { cumulative, annualized, elapsedDays: Math.max(0, Math.floor(elapsedDays)) };
+  const year = Number.isFinite(baselineDate.getTime()) && baselineDate.getFullYear() === currentDate.getFullYear() ? currentDate.getFullYear() : null;
+  return { cumulative, annualized, elapsedDays: Math.max(0, Math.floor(elapsedDays)), year };
 }
 
 function savedAccountBaseline(snapshot, totals) {
@@ -61,7 +62,8 @@ function savedAccountBaseline(snapshot, totals) {
 }
 
 function renderPortfolioPerformance(snapshot) {
-  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const totals = accountTotals(snapshot); const baseline = savedAccountBaseline(snapshot, totals); const performance = accountPerformance(baseline, totals); const currency = rows[0]?.currency || "KRW"; const values = [{ label: "기준 원금", value: money(baseline.cost, currency), hint: "기준일 현금 + 주식 원금", tone: "neutral" }, { label: "현재 평가액", value: money(totals.value, currency), hint: "현금 + 주식 평가액", tone: "neutral" }, { label: "수익금액", value: signedMoney(totals.value - baseline.cost, currency), hint: "평가액 − 기준 원금", tone: totals.value - baseline.cost < 0 ? "loss" : "gain" }, { label: "누적 수익률", value: performance.cumulative, hint: "기준일 이후 계좌 기준", tone: performance.cumulative < 0 ? "loss" : "gain", percent: true }, { label: "연환산 수익률", value: performance.annualized, hint: performance.annualized === null ? "기준일 30일 후 산출" : `기준일 이후 ${performance.elapsedDays}일`, tone: performance.annualized < 0 ? "loss" : "gain", percent: true }];
+  const container = document.getElementById("portfolio-performance"); const rows = portfolioRows(snapshot); const totals = accountTotals(snapshot); const baseline = savedAccountBaseline(snapshot, totals); const performance = accountPerformance(baseline, totals); const currency = rows[0]?.currency || "KRW"; const values = [{ label: "기준 원금", value: money(baseline.cost, currency), hint: "기준일 현금 + 주식 원금", tone: "neutral" }, { label: "현재 평가액", value: money(totals.value, currency), hint: "현금 + 주식 평가액", tone: "neutral" }, { label: "수익금액", value: signedMoney(totals.value - baseline.cost, currency), hint: "평가액 − 기준 원금", tone: totals.value - baseline.cost < 0 ? "loss" : "gain" }, { label: "누적 수익률", value: performance.cumulative, hint: "기준일 이후 계좌 기준", tone: performance.cumulative < 0 ? "loss" : "gain", percent: true }];
+  if (performance.year !== null) values.push({ label: `${performance.year}년 수익률`, value: performance.cumulative, hint: "데이터가 있는 기간 기준", tone: performance.cumulative < 0 ? "loss" : "gain", percent: true });
   container.replaceChildren(...values.map(({ label, value, hint, tone, percent }) => { const metric = document.createElement("article"); metric.className = tone; const title = document.createElement("p"); title.textContent = label; const result = document.createElement("strong"); result.textContent = percent ? (Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value}%` : "-") : value; const note = document.createElement("small"); note.textContent = hint; metric.append(title, result, note); return metric; })); container.hidden = false;
 }
 
