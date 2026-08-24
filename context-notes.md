@@ -254,3 +254,10 @@
 - User confirmed the minute/hour chart UI will not return. Removed the whole intraday storage path: backfill_intraday.py deleted, Worker POST/GET /v1/intraday removed, worker.test.mjs now asserts both routes respond 404.
 - Realtime collector (NAS) and /v1/realtime POST+GET stay as accepted per user instruction. Old KV keys under intraday:* remain until manually deleted in the Cloudflare dashboard.
 - Worker changes require wrangler deploy to take effect; deployment was not run in this session.
+
+# 2026-08-25 KV quota root cause and scheduling
+- wrangler tail evidence: NAS collector POSTs /v1/realtime every ~10s around the clock (even with zero new ticks after close), exhausting the free KV daily write limit (1,000) by late morning; subsequent /v1/snapshot PUT fails with KV put() limit exceeded -> Worker 1101. This is why Monday's data never appeared.
+- User-approved fixes: collector now uploads only when new ticks arrived and at most once per 60s (realtime_collector.py, UPLOAD_INTERVAL). Daily account sync added as Synology kis-daily-sync compose service running daily_sync_loop.py at weekdays 16:30 KST (next_run skips weekends; unit-tested).
+- Dockerfile.realtime now copies sync_portfolio.py + daily_sync_loop.py; .env.realtime.example lists KIS_ACCOUNT_NO and KRX_* vars required by the daily sync.
+- KV limit resets 09:00 KST daily. Today's failed snapshot must wait for reset; user chose to run tomorrow morning (or the new 16:30 schedule covers it once the container is rebuilt).
+- User must copy updated files to Synology and rebuild both containers; deployment not performed here.

@@ -1,4 +1,4 @@
-# Synology에서 KIS 실시간 체결 수집기를 상시 실행한다.
+# Synology에서 KIS 실시간 수집기와 일일 계좌 동기화를 상시 실행한다.
 services:
   kis-realtime:
     build:
@@ -6,3 +6,10 @@ services:
       dockerfile: Dockerfile.realtime
     env_file: ${REALTIME_ENV_FILE:-.env.realtime}
     restart: unless-stopped
+  kis-daily-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile.realtime
+    env_file: ${REALTIME_ENV_FILE:-.env.realtime}
+    restart: unless-stopped
+    command: ["python", "-u", "daily_sync_loop.py"]

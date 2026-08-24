@@ -37,7 +37,8 @@
     <tr><td><code>api.mjs</code></td><td>Worker 엔드포인트 주소 단일 출처</td><td>app·analysis·returns가 공유</td></tr>
     <tr><td><code>worker.mjs</code></td><td>Cloudflare Worker: 공개 시장 캐시, GitHub OAuth 로그인(HMAC 세션), 수집 토큰 인증 적재, 세션 인증 조회</td><td>KV 단일 바인딩 <code>PORTFOLIO_CACHE</code></td></tr>
     <tr><td><code>sync_portfolio.py</code></td><td>로컬 KIS 동기화: 잔고 + 전체 일봉 페이지네이션 + 90일 체결 이력 → <code>/v1/snapshot</code>, KRX 지표 → <code>/v1/market/krx</code></td><td>토스증권 경로는 2026-08-23 제거됨</td></tr>
-    <tr><td><code>realtime_collector.py</code> · Dockerfile · compose</td><td>Synology 상시 KIS WebSocket 체결 수집 → <code>/v1/realtime</code></td><td>심벌당 최근 3,000틱</td></tr>
+    <tr><td><code>realtime_collector.py</code> · Dockerfile · compose</td><td>Synology 상시 KIS WebSocket 체결 수집 → <code>/v1/realtime</code></td><td>심벌당 최근 3,000틱, 새 틱 시 최소 60초 간격 업로드(KV 한도 보호)</td></tr>
+    <tr><td><code>daily_sync_loop.py</code></td><td>Synology에서 평일 16:30(KST) 계좌·일봉·체결·KRX 스냅샷을 하루 한 번 동기화</td><td><code>kis-daily-sync</code> 서비스로 실행</td></tr>
   </table>
 
   <h2>3. 빌드·실행·테스트 명령</h2>
@@ -115,7 +116,8 @@ flowchart LR
   <h2>7. 남은 위험과 보류 항목</h2>
   <ul>
     <li>분봉 UI는 2026-08-23 사용자 확정으로 재개하지 않기로 하여 분봉 저장 경로(<code>backfill_intraday.py</code>, Worker <code>/v1/intraday</code> 양방향)를 제거했습니다. KV에 남은 <code>intraday:*</code> 키는 Cloudflare 대시보드에서 수동 삭제할 수 있습니다.</li>
-    <li>실시간 체결 수집기(NAS)와 <code>/v1/realtime</code> 경로는 프론트엔드 소비자가 없지만 그대로 유지하기로 수용했습니다.</li>
+    <li>실시간 체결 수집기(NAS)와 <code>/v1/realtime</code> 경로는 프론트엔드 소비자가 없지만 그대로 유지하기로 수용했습니다. 2026-08-25부터 수집기는 새 틱이 있을 때만 최소 60초 간격으로 업로드해 무료 KV 일일 쓰기 한도(1,000회)를 보호하며, 이전에는 10초 무조건 업로드로 매일 오전 한도를 소진시켜 계좌 스냅샷 저장(1101 오류)까지 실패시켰습니다.</li>
+    <li>계좌 정기 동기화는 Synology <code>kis-daily-sync</code> 서비스가 평일 16:30(KST)에 수행합니다. KV 한도는 매일 KST 09:00에 리셋됩니다.</li>
     <li><code>sync_portfolio.py</code>의 토스증권 연동은 사용자 승인으로 제거되었습니다. 재사용 시 이전 커밋을 참조해야 합니다.</li>
     <li>계좌 연간 수익률은 입출금 시계열이 없어 의도적으로 비활성 상태입니다.</li>
     <li>오래된 공개 커밋 이력에는 당시 식별자가 남아 있을 수 있습니다(이력 재작성은 별도 결정 사항).</li>

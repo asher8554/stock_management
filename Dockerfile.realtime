@@ -3,5 +3,5 @@ FROM python:3.13-alpine
 WORKDIR /app
 COPY requirements-realtime.txt .
 RUN pip install --no-cache-dir -r requirements-realtime.txt
-COPY realtime_collector.py .
+COPY realtime_collector.py sync_portfolio.py daily_sync_loop.py ./
 CMD ["python", "-u", "realtime_collector.py"]
