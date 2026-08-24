@@ -58,7 +58,7 @@ async def run():
     last_upload = 0.0
     while True:
         try:
-            async with websockets.connect(os.environ.get("KIS_WS_URL", "ws://ops.koreainvestment.com:21000/tryitout"), ping_interval=30) as socket:
+            async with websockets.connect(os.environ.get("KIS_WS_URL", "wss://ops.koreainvestment.com:21000/tryitout"), ping_interval=30) as socket:
                 key = approval_key()
                 for symbol in SYMBOLS:
                     await socket.send(json.dumps({"header": {"approval_key": key, "custtype": "P", "tr_type": "1", "content-type": "utf-8"}, "body": {"input": {"tr_id": "H0STCNT0", "tr_key": symbol}}}))

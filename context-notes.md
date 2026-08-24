@@ -261,3 +261,9 @@
 - Dockerfile.realtime now copies sync_portfolio.py + daily_sync_loop.py; .env.realtime.example lists KIS_ACCOUNT_NO and KRX_* vars required by the daily sync.
 - KV limit resets 09:00 KST daily. Today's failed snapshot must wait for reset; user chose to run tomorrow morning (or the new 16:30 schedule covers it once the container is rebuilt).
 - User must copy updated files to Synology and rebuild both containers; deployment not performed here.
+
+# 2026-08-25 CSO remediation applied
+- F1: worker.mjs authorized() now returns false when INGEST_TOKEN is unset (previously Bearer undefined would have matched).
+- F2: meta Content-Security-Policy added to index/analysis/returns/settings (style-src keeps 'unsafe-inline' for JS-set style attributes; connect-src limited to the private API; jsdelivr allowed for Pretendard).
+- F3: realtime collector default WS URL switched to wss://; F4: Dockerfile.realtime runs as non-root pp user.
+- Worker deploy required for F1; static CSP ships with Pages push; F3/F4 take effect at the next Synology rebuild.

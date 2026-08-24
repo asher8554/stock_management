@@ -4,4 +4,6 @@ WORKDIR /app
 COPY requirements-realtime.txt .
 RUN pip install --no-cache-dir -r requirements-realtime.txt
 COPY realtime_collector.py sync_portfolio.py daily_sync_loop.py ./
+RUN adduser -D app
+USER app
 CMD ["python", "-u", "realtime_collector.py"]
