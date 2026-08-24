@@ -5,7 +5,7 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
 });
 
-const authorized = (request, token) => request.headers.get("authorization") === `Bearer ${token}`;
+const authorized = (request, token) => Boolean(token) && request.headers.get("authorization") === `Bearer ${token}`;
 const cors = (request) => request.headers.get("origin") === "https://asher8554.github.io" ? { "access-control-allow-origin": "https://asher8554.github.io", "access-control-allow-headers": "authorization, content-type", "vary": "origin" } : {};
 const base64Url = (value) => btoa(String.fromCharCode(...new Uint8Array(value))).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 const fromBase64Url = (value) => Uint8Array.from(atob(value.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((value.length + 3) % 4)), (character) => character.charCodeAt(0));
