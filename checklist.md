@@ -248,4 +248,4 @@
 - [ ] 사용자: Synology 파일 복사 + 컨테이너 재빌드
 - [ ] 내일 아침(KV 리셋 후) 스냅샷 동기화 확인
 - [x] CSO 점검 반영: F1 토큰 가드, F2 CSP, F3 wss, F4 non-root (사용자 승인 후 적용)
-- [ ] worker 재배포 및 검증
+- [x] worker 재배포 완료 및 검증(health/market 200, Bearer undefined·무토큰 401)
