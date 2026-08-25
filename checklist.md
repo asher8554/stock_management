@@ -245,7 +245,7 @@
 - [x] 수집기 절전 수정(새 틱 시 + 최소 60초 간격) — 사용자 승인
 - [x] Synology kis-daily-sync 서비스 추가(평일 16:30 KST) + 스케줄 테스트 4개
 - [x] .env.realtime.example에 일일 동기화 필요 변수 문서화
-- [ ] 사용자: Synology 파일 복사 + 컨테이너 재빌드
+- [x] Synology 배포 완료(파일 해시 검증, env 4변수 추가, 컨테이너 2개 기동, tail 50초 0 POST 확인)
 - [ ] 내일 아침(KV 리셋 후) 스냅샷 동기화 확인
 - [x] CSO 점검 반영: F1 토큰 가드, F2 CSP, F3 wss, F4 non-root (사용자 승인 후 적용)
 - [x] worker 재배포 완료 및 검증(health/market 200, Bearer undefined·무토큰 401)

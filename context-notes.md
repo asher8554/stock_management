@@ -267,3 +267,10 @@
 - F2: meta Content-Security-Policy added to index/analysis/returns/settings (style-src keeps 'unsafe-inline' for JS-set style attributes; connect-src limited to the private API; jsdelivr allowed for Pretendard).
 - F3: realtime collector default WS URL switched to wss://; F4: Dockerfile.realtime runs as non-root pp user.
 - Worker deploy required for F1; static CSP ships with Pages push; F3/F4 take effect at the next Synology rebuild.
+
+# 2026-08-25 Synology deployment completed
+- Files copied to /volume1/docker/stock-management-realtime via scp -O (plain pipe transfer corrupted encoding; sha256 verified all five files byte-identical).
+- .env.realtime gained KIS_ACCOUNT_NO + three KRX_* vars (values transferred without console echo).
+- User ran sudo docker-compose up -d --build; both containers started (kis-realtime, kis-daily-sync).
+- Indirect verification: 50s wrangler tail showed zero /v1/realtime POSTs after market close (old code would have sent ~5) — upload throttle live.
+- Next automatic snapshot: weekday 16:30 KST via kis-daily-sync; KV quota resets 09:00 KST. Monday+Tuesday data will land then; no manual sync needed unless user wants it sooner.
