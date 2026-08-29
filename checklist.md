@@ -249,3 +249,19 @@
 - [ ] 내일 아침(KV 리셋 후) 스냅샷 동기화 확인
 - [x] CSO 점검 반영: F1 토큰 가드, F2 CSP, F3 wss, F4 non-root (사용자 승인 후 적용)
 - [x] worker 재배포 완료 및 검증(health/market 200, Bearer undefined·무토큰 401)
+- [x] /v1/market KV put 실패 시에도 fresh FRED 값 응답(worker.mjs try/catch + 테스트) — 8/26 재배포·실서비스 확인
+
+# Telegram agent global connection
+- [x] tgfmcp long-polling이 Synology Hermes와 같은 토큰에서 충돌함을 확인
+- [x] tgfmcp 설정·토큰 복사본 제거, polling/webhook 제어 없는 발신 전용 전역 MCP로 교체
+- [x] 안전 MCP stdio 스모크·봇 인증·opencode 전역 connected·webhook 무변경 확인
+- [ ] 에이전트 수신이 필요하면 Hermes와 분리된 새 Telegram 봇 토큰 발급
+
+# 2026-08-29 CSO 보완
+- [x] `.env` Git 무시·미추적·전체 이력 미존재 재검증
+- [x] Worker HMAC 수집 인증, 고정 OAuth callback, 보안 응답 헤더, CORS 메서드 적용
+- [x] Node 18/18, Python 8/8, `git diff --check` 검증
+- [x] Worker 배포·health 200·무인증 portfolio 403·허용 origin CORS preflight 확인
+- [ ] GitHub OAuth 완료와 NAS 수집 정상 동작 확인
+- [ ] Cloudflare와 Synology를 같은 작업 창에 갱신하는 `INGEST_TOKEN` 회전
+- [ ] Cloudflare 대시보드에서 `/auth/github*`와 `/v1/*` rate-limit 규칙 적용

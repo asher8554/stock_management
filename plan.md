@@ -193,3 +193,9 @@
 4. 미추적 로그·캐시 산출물을 정리하고 .gitignore에 패턴을 추가한다. 검증: git status.
 5. 사용자 확인이 필요한 항목은 질문 뒤에만 진행한다. 대상: 토스증권 연동 제거 여부, `icon` 원본 이미지 삭제 여부.
 6. 완료 후 `$project-hardening-docs`로 인계한다.
+
+# 2026-08-29 보안 보완
+
+1. `.env`가 Git에서 무시되고 추적·전체 이력에 없는지 확인한다. 검증: `git check-ignore -v .env`, `git ls-files -- .env .env.*`, `git log --all -- .env`.
+2. Worker 수집 인증을 Web Crypto HMAC 검증으로 바꾸고, 고정 OAuth callback·보안 응답 헤더·명시적 CORS 메서드를 적용한다. 검증: `node --test tests/*.test.mjs`.
+3. Worker를 배포했고 health·무인증 차단·CORS preflight을 확인했다. 정상 OAuth와 NAS 수집은 다음 운영 확인에서 검증한다. 키 회전은 Cloudflare와 Synology 값을 같은 작업 창에 교체한 뒤에만 수행한다.

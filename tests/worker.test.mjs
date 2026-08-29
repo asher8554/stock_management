@@ -13,16 +13,29 @@ const env = {
 };
 const snapshot = { updatedAt: "2026-08-21T00:00:00Z", accounts: [] };
 
+const health = await worker.fetch(new Request("https://api/health"), env);
+assert.equal(health.headers.get("content-security-policy"), "default-src 'none'; base-uri 'none'; frame-ancestors 'none'");
+assert.equal(health.headers.get("x-content-type-options"), "nosniff");
+assert.equal(health.headers.get("x-frame-options"), "DENY");
+const preflight = await worker.fetch(new Request("https://api/v1/portfolio", { method: "OPTIONS", headers: { origin: "https://asher8554.github.io" } }), env);
+assert.equal(preflight.headers.get("access-control-allow-methods"), "GET, POST, OPTIONS");
+const blockedPreflight = await worker.fetch(new Request("https://api/v1/portfolio", { method: "OPTIONS", headers: { origin: "https://example.invalid" } }), env);
+assert.equal(blockedPreflight.headers.get("access-control-allow-origin"), null);
+
 const missingCredential = await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", body: JSON.stringify(snapshot) }), env);
 assert.deepEqual(await missingCredential.json(), { error: "unauthorized" });
 const mismatchedCredential = await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", headers: { authorization: "Bearer wrong" }, body: JSON.stringify(snapshot) }), env);
 assert.deepEqual(await mismatchedCredential.json(), { error: "unauthorized" });
+const unsetCredential = await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", headers: { authorization: "Bearer undefined" }, body: JSON.stringify(snapshot) }), { ...env, INGEST_TOKEN: undefined });
+assert.deepEqual(await unsetCredential.json(), { error: "unauthorized" });
 assert.equal((await worker.fetch(new Request("https://api/v1/snapshot", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(snapshot) }), env)).status, 200);
 assert.equal((await worker.fetch(new Request("https://api/v1/portfolio"), env)).status, 403);
 
 const login = await worker.fetch(new Request("https://api/auth/github"), env);
 assert.equal(login.status, 302);
 assert.match(login.headers.get("set-cookie"), /github-oauth-state=/);
+assert.equal(login.headers.get("cache-control"), "no-store");
+assert.equal(new URL(login.headers.get("location")).searchParams.get("redirect_uri"), "https://stock-management-private-api.household-account-asher.workers.dev/auth/github/callback");
 assert.equal([...cache.keys()].some((key) => key.startsWith("oauth:")), false);
 const state = new URL(login.headers.get("location")).searchParams.get("state");
 const cookie = login.headers.get("set-cookie").split(";", 1)[0];
@@ -52,6 +65,15 @@ globalThis.fetch = async () => Response.json({ observations: [{ date: "2026-08-2
 const mergedMarket = await worker.fetch(new Request("https://api/v1/market"), { ...env, FRED_API_KEY: "fred-key" });
 globalThis.fetch = originalFetch;
 assert.equal((await mergedMarket.json()).metrics.kospi100.value, "1,000");
+
+const failingCache = { get: (key) => cache.get(key), put: () => { throw new Error("KV put() limit exceeded for the day."); }, delete: (key) => cache.delete(key) };
+cache.set("market:last", JSON.stringify({ updatedAt: "2026-08-21T00:00:00Z", metrics: { sp500: { value: "오래된 값" } } }));
+cache.delete("market:latest");
+globalThis.fetch = async () => Response.json({ observations: [{ date: "2026-08-25", value: "456.78" }] });
+const putFailMarket = await worker.fetch(new Request("https://api/v1/market"), { ...env, FRED_API_KEY: "fred-key", PORTFOLIO_CACHE: failingCache });
+globalThis.fetch = originalFetch;
+assert.equal(putFailMarket.status, 200);
+assert.equal((await putFailMarket.json()).metrics.sp500.value, "456.78");
 
 const realtimeSnapshot = { updatedAt: "2026-08-22T00:00:00Z", symbols: { "237350": [{ time: "20260822T090000", price: 100, volume: 1 }] } };
 assert.equal((await worker.fetch(new Request("https://api/v1/realtime", { method: "POST", headers: { authorization: "Bearer ingest" }, body: JSON.stringify(realtimeSnapshot) }), env)).status, 200);

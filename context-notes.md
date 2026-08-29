@@ -274,3 +274,23 @@
 - User ran sudo docker-compose up -d --build; both containers started (kis-realtime, kis-daily-sync).
 - Indirect verification: 50s wrangler tail showed zero /v1/realtime POSTs after market close (old code would have sent ~5) — upload throttle live.
 - Next automatic snapshot: weekday 16:30 KST via kis-daily-sync; KV quota resets 09:00 KST. Monday+Tuesday data will land then; no manual sync needed unless user wants it sooner.
+
+# 2026-08-26 market endpoint KV-put resilience
+- worker.mjs /v1/market: the two PORTFOLIO_CACHE.put calls (market:latest, market:last) are now wrapped in try/catch; put failure no longer discards freshly fetched FRED values — fresh response still served.
+- New worker.test.mjs case: failingCache.put throws -> /v1/market still returns 200 with fresh FRED value instead of stale market:last. node --test 18/18 pass.
+- wrangler deploy done (version a40352bd). Live check: health 200; /v1/market shows FRED sp500/treasury asOf 08-24 with krx.updatedAt 08-23 (KOSPI100/gold stay 08-21 until kis-daily-sync uploads weekday data at 16:30 KST today).
+
+# 2026-08-26 텔레그램 에이전트 전역 연결 충돌 정리
+- 사용자가 Synology Hermes에도 텔레그램을 연결했다고 알려 옴. `getWebhookInfo`는 webhook 없음·대기 업데이트 0·오류 없음. Hermes가 같은 토큰으로 수신 중이면 long polling 방식일 가능성이 높음.
+- 원인 확정: `tgfmcp@0.5.0`는 `--channels` 유무와 무관하게 `bot.launch()`를 호출해 long polling을 시작한다. 같은 봇 토큰을 Hermes와 공유하면 Telegram `getUpdates` 409 충돌이 난다.
+- `tgfmcp` 전역 등록과 `~/.tgfmcp/config.json`을 제거했다. 토큰 복사본도 제거했고, 임시 스모크 파일도 삭제했다.
+- 새 전역 MCP는 `~/.config/opencode/telegram-safe-mcp.mjs`다. Node 표준 라이브러리만 사용하고 Windows User/Machine 환경변수에서 토큰을 런타임에 읽는다. `telegram_get_status`, `telegram_get_me`, `telegram_send_message`만 노출하며 `getUpdates`, polling, webhook 변경 기능은 없다.
+- `opencode.jsonc`의 `telegram`은 새 안전 MCP를 사용한다. stdio initialize/tools/status 스모크와 `opencode mcp list` connected를 통과했고, 봇 @asher8554Bot 인증도 확인했다. 재확인한 webhook 상태도 변경 없음.
+- 결과: Hermes가 텔레그램 수신을 계속 소유하고, 에이전트는 같은 봇으로 충돌 없는 발신만 한다. 현재 열린 에이전트 세션은 새 MCP 목록을 못 읽으므로 새 OpenCode/Orca 세션에서 사용한다. 에이전트 수신이 필요하면 별도 봇 토큰을 쓴다.
+
+# 2026-08-29 CSO 보완
+- 재검증 결과 `.env`는 `.gitignore`로 무시되고 Git 추적·전체 이력에도 없다. 이전 보안 보고의 저장소 시크릿 유출 CRITICAL 판정은 오탐이다.
+- `worker.mjs`는 수집 Bearer 값을 Web Crypto HMAC으로 검증하고, OAuth callback을 운영 Worker URL로 고정했다. 모든 Worker 응답은 CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`를 포함한다. 허용 Pages origin의 preflight에는 `GET, POST, OPTIONS`를 명시한다.
+- 검증: `node --test tests/*.test.mjs` 18/18, `python -m unittest discover -s tests` 8/8, `node --check worker.mjs`, `git diff --check` 통과.
+- Worker는 `68cd34b0-cac1-4ecb-92cb-4685f0ed48cd`로 배포했다. 실서비스 `GET /health`는 새 헤더와 함께 200, 무인증 `/v1/portfolio`는 403, 허용 Pages origin preflight는 `GET, POST, OPTIONS`를 반환했다. 전체 GitHub OAuth와 NAS 수집은 다음 운영 확인에서 검증한다.
+- `INGEST_TOKEN`과 제공자 키 회전은 Cloudflare·Synology 값을 같은 운영 창에 함께 바꿔야 하며, 현재 로컬 값은 파일이나 로그에 기록하지 않는다.
