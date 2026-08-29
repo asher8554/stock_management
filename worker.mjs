@@ -1,12 +1,39 @@
 // GitHub 로그인으로 개인 포트폴리오 API 접근을 제한하는 Cloudflare Worker입니다.
 const text = new TextEncoder();
+const securityHeaders = {
+  "content-security-policy": "default-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+  "permissions-policy": "camera=(), geolocation=(), microphone=()",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+};
 const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(body), {
   status,
-  headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
+  headers: { ...securityHeaders, "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers },
 });
 
-const authorized = (request, token) => Boolean(token) && request.headers.get("authorization") === `Bearer ${token}`;
-const cors = (request) => request.headers.get("origin") === "https://asher8554.github.io" ? { "access-control-allow-origin": "https://asher8554.github.io", "access-control-allow-headers": "authorization, content-type", "vary": "origin" } : {};
+async function authorized(request, token) {
+  const candidate = request.headers.get("authorization")?.match(/^Bearer\s+(.+)$/)?.[1];
+  if (!token || !candidate) return false;
+  const key = await crypto.subtle.importKey("raw", text.encode(token), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+  // Keep the equality check inside Web Crypto rather than JavaScript string comparison.
+  const signature = await crypto.subtle.sign("HMAC", key, text.encode(token));
+  return crypto.subtle.verify("HMAC", key, signature, text.encode(candidate));
+}
+
+const cors = (request) => {
+  const allowed = request.headers.get("origin") === "https://asher8554.github.io";
+  return {
+    ...securityHeaders,
+    ...(allowed ? {
+      "access-control-allow-origin": "https://asher8554.github.io",
+      "access-control-allow-headers": "authorization, content-type",
+      "access-control-allow-methods": "GET, POST, OPTIONS",
+      "access-control-max-age": "86400",
+      "vary": "origin",
+    } : {}),
+  };
+};
 const base64Url = (value) => btoa(String.fromCharCode(...new Uint8Array(value))).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 const fromBase64Url = (value) => Uint8Array.from(atob(value.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((value.length + 3) % 4)), (character) => character.charCodeAt(0));
 
@@ -37,10 +64,10 @@ async function hasSession(request, secret) {
 
 const allowedGitHubLogin = (env) => env.ALLOWED_GITHUB_LOGIN?.trim().toLowerCase();
 const githubConfigured = (env) => [env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET, env.GITHUB_SESSION_SECRET, allowedGitHubLogin(env)].every(Boolean);
-const callbackUrl = (request) => new URL("/auth/github/callback", request.url).toString();
-const redirect = (url) => Response.redirect(url, 302);
+const callbackUrl = () => "https://stock-management-private-api.household-account-asher.workers.dev/auth/github/callback";
+const redirect = (url) => new Response(null, { status: 302, headers: { ...securityHeaders, "cache-control": "no-store", location: url } });
 const cookie = (request, name) => request.headers.get("cookie")?.split(";").map((value) => value.trim()).find((value) => value.startsWith(`${name}=`))?.slice(name.length + 1);
-const marketHeaders = (headers) => ({ "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
+const marketHeaders = (headers) => ({ ...securityHeaders, "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers });
 const number = (value) => Number(String(value).replaceAll(",", ""));
 const metric = (value, asOf, source, unit = "") => ({ value: Number.isFinite(number(value)) ? number(value).toLocaleString("ko-KR", { maximumFractionDigits: 2 }) : String(value), asOf, source, unit });
 
@@ -72,8 +99,10 @@ async function market(request, env, headers) {
     const fresh = await freshMarket(env);
     const krx = JSON.parse(await env.PORTFOLIO_CACHE.get("market:krx") || "null");
     const value = JSON.stringify(krx ? { ...fresh, updatedAt: krx.updatedAt, metrics: { ...fresh.metrics, ...krx.metrics } } : fresh);
-    await env.PORTFOLIO_CACHE.put("market:latest", value, { expirationTtl: 3600 });
-    await env.PORTFOLIO_CACHE.put("market:last", value);
+    try {
+      await env.PORTFOLIO_CACHE.put("market:latest", value, { expirationTtl: 3600 });
+      await env.PORTFOLIO_CACHE.put("market:last", value);
+    } catch {}
     return new Response(value, { headers: marketHeaders(headers) });
   } catch {
     const previous = await env.PORTFOLIO_CACHE.get("market:last");
@@ -81,12 +110,12 @@ async function market(request, env, headers) {
   }
 }
 
-async function startGitHubLogin(request, env) {
+async function startGitHubLogin(env) {
   if (!githubConfigured(env)) return json({ error: "github_auth_not_configured" }, 503);
   const state = crypto.randomUUID();
   const url = new URL("https://github.com/login/oauth/authorize");
-  url.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callbackUrl(request), state, login: allowedGitHubLogin(env), allow_signup: "false" }).toString();
-  return new Response(null, { status: 302, headers: { location: url.toString(), "set-cookie": `github-oauth-state=${state}; Path=/auth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600` } });
+  url.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: callbackUrl(), state, login: allowedGitHubLogin(env), allow_signup: "false" }).toString();
+  return new Response(null, { status: 302, headers: { ...securityHeaders, "cache-control": "no-store", location: url.toString(), "set-cookie": `github-oauth-state=${state}; Path=/auth/github; HttpOnly; Secure; SameSite=Lax; Max-Age=600` } });
 }
 
 async function completeGitHubLogin(request, env) {
@@ -98,7 +127,7 @@ async function completeGitHubLogin(request, env) {
   const exchange = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     headers: { accept: "application/json", "content-type": "application/json" },
-    body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code, redirect_uri: callbackUrl(request) }),
+    body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code, redirect_uri: callbackUrl() }),
   }).then((response) => response.ok ? response.json() : null).catch(() => null);
   if (!exchange?.access_token) return json({ error: "github_oauth_failed" }, 502);
   const user = await fetch("https://api.github.com/user", { headers: { authorization: `Bearer ${exchange.access_token}`, "user-agent": "stock-management-private-api" } }).then((response) => response.ok ? response.json() : null).catch(() => null);
@@ -114,17 +143,17 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { headers });
     if (request.method === "GET" && pathname === "/health") return json({ ok: true }, 200, headers);
     if (request.method === "GET" && pathname === "/v1/market") return market(request, env, headers);
-    if (request.method === "GET" && pathname === "/auth/github") return startGitHubLogin(request, env);
+    if (request.method === "GET" && pathname === "/auth/github") return startGitHubLogin(env);
     if (request.method === "GET" && pathname === "/auth/github/callback") return completeGitHubLogin(request, env);
     if (request.method === "POST" && pathname === "/v1/snapshot") {
-      if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
+      if (!await authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
       const snapshot = await request.json().catch(() => null);
       if (!snapshot?.updatedAt || !Array.isArray(snapshot.accounts)) return json({ error: "invalid_snapshot" }, 400, headers);
       await env.PORTFOLIO_CACHE.put("latest", JSON.stringify(snapshot));
       return json({ ok: true }, 200, headers);
     }
     if (request.method === "POST" && pathname === "/v1/market/krx") {
-      if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
+      if (!await authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
       const snapshot = await request.json().catch(() => null);
       if (!snapshot?.updatedAt || !snapshot?.metrics?.kospi100 || !snapshot?.metrics?.gold) return json({ error: "invalid_market_snapshot" }, 400, headers);
       await env.PORTFOLIO_CACHE.put("market:krx", JSON.stringify(snapshot));
@@ -132,7 +161,7 @@ export default {
       return json({ ok: true }, 200, headers);
     }
     if (request.method === "POST" && pathname === "/v1/realtime") {
-      if (!authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
+      if (!await authorized(request, env.INGEST_TOKEN)) return json({ error: "unauthorized" }, 401, headers);
       const snapshot = await request.json().catch(() => null);
       if (!snapshot?.updatedAt || !snapshot?.symbols || typeof snapshot.symbols !== "object") return json({ error: "invalid_realtime_snapshot" }, 400, headers);
       await env.PORTFOLIO_CACHE.put("realtime:latest", JSON.stringify(snapshot));
