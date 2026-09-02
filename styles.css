@@ -45,8 +45,8 @@ main>section.analysis-chart { overflow:visible; }
 }
 @media(max-width:820px){
   .is-mobile .analysis-chart-shell{ overflow:hidden; }
-  .is-mobile #analysis-chart-host{ overflow:hidden; touch-action:manipulation; }
-  .is-mobile .holding-chart{ min-width:0; width:100%; }
+  .is-mobile #analysis-chart-host{ overflow:hidden !important; overflow-x:hidden !important; overflow-y:hidden !important; touch-action:manipulation; }
+  .is-mobile .holding-chart{ min-width:0 !important; width:100% !important; max-width:100%; }
 }
 @media(max-width:520px){
   .analysis-chart{ padding:12px 10px 16px; }
