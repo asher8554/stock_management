@@ -44,9 +44,11 @@ main>section.analysis-chart { overflow:visible; }
   #analysis-chart-axis{ height:735px; }
 }
 @media(max-width:820px){
-  .is-mobile .analysis-chart-shell{ overflow:hidden; }
-  .is-mobile #analysis-chart-host{ overflow:hidden !important; overflow-x:hidden !important; overflow-y:hidden !important; touch-action:manipulation; }
-  .is-mobile .holding-chart{ min-width:0 !important; width:100% !important; max-width:100%; }
+  .is-mobile .analysis-chart-shell{ overflow:hidden; min-height:auto !important; padding-bottom:0 !important; }
+  .is-mobile #analysis-chart-host{ overflow:hidden !important; overflow-x:hidden !important; overflow-y:hidden !important; min-height:auto !important; height:auto !important; touch-action:manipulation; }
+  .is-mobile .holding-chart{ min-width:0 !important; width:100% !important; max-width:100%; height:auto !important; }
+  .is-mobile #analysis-chart-axis{ height:100% !important; }
+  .is-mobile #analysis-chart-legend{ position:relative; top:auto; left:auto; margin-bottom:6px; }
 }
 @media(max-width:520px){
   .analysis-chart{ padding:12px 10px 16px; }
@@ -54,8 +56,11 @@ main>section.analysis-chart { overflow:visible; }
   #analysis-chart-host{ min-height:460px; }
   #analysis-chart-axis{ width:88px; height:735px; }
   #analysis-chart-axis .axis-price{ font-size:11px; }
+  .is-mobile .analysis-chart{ min-height:auto !important; }
+  .is-mobile .analysis-chart-shell{ min-height:auto !important; }
+  .is-mobile #analysis-chart-host{ min-height:auto !important; }
   .is-mobile .holding-chart{ min-width:0; width:100%; }
-  .is-mobile #analysis-chart-axis{ width:72px; }
+  .is-mobile #analysis-chart-axis{ width:72px; height:100% !important; }
 }
 .chart-time { text-anchor:middle; }
 .holding-chart { width:auto; }
