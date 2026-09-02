@@ -148,7 +148,11 @@ export function indicatorValues(daily, bars, unit, period, calculate = sma) {
   return bars.map((bar) => sampled.get(bar.time) ?? null);
 }
 
-export const chartWidth = (count, zoom = 1) => Math.max(1080, 1080 + (Math.max(1, count) - 120) * 8 * zoom);
+export const chartWidth = (count, zoom = 1) => {
+  const isMobile = typeof window !== "undefined" && (window.innerWidth <= 520 || document.documentElement.classList.contains("is-mobile"));
+  const base = isMobile ? 720 : 1080;
+  return Math.max(base, base + (Math.max(1, count) - 120) * 8 * zoom);
+};
 export const chartScrollLeft = (count, viewportWidth, scrollRight, zoom = 1) => Math.max(0, chartWidth(count, zoom) - viewportWidth - Math.max(0, scrollRight));
 export const chartViewportRange = (count, scrollLeft, viewportWidth, zoom = 1) => {
   const step = (chartWidth(count, zoom) - 113) / Math.max(count - 1, 1);
@@ -182,13 +186,17 @@ function renderChart(host, item, unit, range, zoom, indicators, syncCount) {
   const legend = document.getElementById("analysis-chart-legend"); const axis = document.getElementById("analysis-chart-axis");
   const allBars = indicators.bars; const bars = barsForRange(allBars, range);
   if (!bars.length) { renderKeys.delete(host); host.textContent = "일별 데이터가 없습니다. 다음 동기화 뒤 다시 확인하세요."; legend.replaceChildren(); axis.replaceChildren(); return []; }
-  const scrollRight = Math.max(0, host.scrollWidth - host.clientWidth - host.scrollLeft); const start = Math.max(0, allBars.length - bars.length); const width = chartWidth(bars.length, zoom); const nextScrollLeft = chartScrollLeft(bars.length, host.clientWidth, scrollRight, zoom);
-  const [viewStart, viewEnd] = chartViewportRange(bars.length, nextScrollLeft, host.clientWidth, zoom);
+  const isMobileView = typeof window !== "undefined" && (window.innerWidth <= 820 || document.documentElement.classList.contains("is-mobile"));
+  const effectiveZoom = isMobileView ? 1 : zoom;
+  const scrollRight = isMobileView ? 0 : Math.max(0, host.scrollWidth - host.clientWidth - host.scrollLeft); const start = Math.max(0, allBars.length - bars.length);
+  const width = isMobileView ? Math.max(320, host.clientWidth || document.documentElement.clientWidth - 32) : chartWidth(bars.length, effectiveZoom);
+  const nextScrollLeft = isMobileView ? 0 : chartScrollLeft(bars.length, host.clientWidth, scrollRight, effectiveZoom);
+  const [viewStart, viewEnd] = isMobileView ? [0, bars.length] : chartViewportRange(bars.length, nextScrollLeft, host.clientWidth, effectiveZoom);
   // 같은 데이터·단위·기간·확대·보이는 창이면 SVG를 다시 만들지 않아 스크롤마다 전체 재생성을 피한다.
-  const renderKey = `${syncCount}|${unit}|${range}|${zoom}|${viewStart}:${viewEnd}`;
+  const renderKey = `${syncCount}|${unit}|${range}|${effectiveZoom}|${viewStart}:${viewEnd}|${width}`;
   if (renderKeys.get(host) === renderKey) return bars;
   renderKeys.set(host, renderKey);
-  const priceTop = 28; const priceBottom = 290; const volumeTop = 318; const volumeBottom = 378; const rsiTop = 410; const rsiBottom = 470; const macdTop = 510; const macdBottom = 710; const left = 58; const right = width - 112;
+  const priceTop = 28; const priceBottom = 290; const volumeTop = 318; const volumeBottom = 378; const rsiTop = 410; const rsiBottom = 470; const macdTop = 510; const macdBottom = 710; const left = 58; const axisW = isMobileView ? (window.innerWidth <= 520 ? 72 : 88) : 112; const right = width - axisW;
   const bollingerValues = bollinger(bars); const tradeEvents = purchaseMarkersForUnit(unit, bars, item.trades || item.purchases);
   const visibleTradePrices = []; const lows = []; const highs = []; const visibleBands = [];
   for (let index = viewStart; index < viewEnd; index += 1) { lows.push(bars[index].low); highs.push(bars[index].high); const band = bollingerValues[index]; if (Number.isFinite(band?.upper)) visibleBands.push(band.upper); if (Number.isFinite(band?.lower)) visibleBands.push(band.lower); }
@@ -204,8 +212,8 @@ function renderChart(host, item, unit, range, zoom, indicators, syncCount) {
   const labelEvery = 20; const positions = bars.flatMap((_, index) => index % labelEvery === 0 || index === bars.length - 1 ? [index] : []);
   const labels = positions.map((index) => `<text x="${x(index)}" y="748" class="chart-axis chart-time">${timeLabel(bars[index].time, unit)}</text>`).join(""); const macdBars = macdValues.histogram.map((value, index) => value === null ? "" : `<rect x="${x(index) - bodyWidth / 2}" y="${Math.min(macdY(value), macdY(0))}" width="${bodyWidth}" height="${Math.abs(macdY(value) - macdY(0))}" class="macd-bar ${value >= 0 ? "up" : "down"}"/>`).join("");
   host.innerHTML = `<svg class="holding-chart" style="width:${width}px;height:755px" viewBox="0 0 ${width} 755" role="img" aria-label="${esc(item.name)} 가격, 거래량, RSI, MACD 차트"><g>${grid}<path d="${bandPath(bollingerValues, x, y)}" class="bollinger-band"/><path d="${linePath(bollingerUpper, x, y)}" class="bollinger-line"/><path d="${linePath(bollingerLower, x, y)}" class="bollinger-line"/>${candles}<path d="${linePath(ma20, x, y)}" class="ma20"/><path d="${linePath(ma60, x, y)}" class="ma60"/><path d="${linePath(ma120, x, y)}" class="ma120"/>${marker(number(item.averagePurchasePrice), "purchase")}${marker(number(item.lastPrice), "current")}${tradeMarks}</g><g><text x="${left}" y="${volumeTop - 9}" class="chart-label">거래량</text><path d="M${left} ${volumeBottom}H${right}" class="chart-grid"/>${volumes}</g><g><text x="${left}" y="${rsiTop - 9}" class="chart-label">RSI 14</text><path d="M${left} ${rsiY(70)}H${right}M${left} ${rsiY(30)}H${right}" class="rsi-grid"/><path d="${linePath(rsi14, x, rsiY)}" class="rsi"/><text x="${right + 10}" y="${rsiY(70) + 4}" class="chart-axis">70</text><text x="${right + 10}" y="${rsiY(30) + 4}" class="chart-axis">30</text></g><g><text x="${left}" y="${macdTop - 9}" class="chart-label">MACD 12·26·9</text><path d="M${left} ${macdY(0)}H${right}" class="rsi-grid"/>${macdBars}<path d="${linePath(macdValues.line, x, macdY)}" class="macd-line"/><path d="${linePath(macdValues.signal, x, macdY)}" class="macd-signal"/>${labels}</g><path class="chart-crosshair" d="M0 0V755" hidden=""/></svg>`;
-  legend.innerHTML = `<span class="ma20">20${maUnit}선</span><span class="ma60">60${maUnit}선</span><span class="ma120">120${maUnit}선</span><span class="bollinger">BB 20·2</span><span class="trade-buy">● 매수</span><span class="trade-sell">● 매도</span><span class="zoom">×${zoom.toFixed(2)}</span>`; const priceNotes = [{ label: "평균", value: number(item.averagePurchasePrice), cls: "purchase" }, { label: "현재", value: number(item.lastPrice), cls: "current" }].filter(({ value }) => Number.isFinite(value) && value > 0).sort((left, right) => y(left.value) - y(right.value)); let previousLabelTop = -Infinity; const placedPriceNotes = priceNotes.map((note) => ({ ...note, labelTop: previousLabelTop = Math.max(y(note.value), previousLabelTop + 22) })); axis.innerHTML = `${priceAxis.map(({ value, top }) => `<span class="axis-tick" style="top:${top - 9}px">${Math.round(value).toLocaleString("ko-KR")}</span>`).join("")}${placedPriceNotes.map(({ label, value, cls, labelTop }) => `<span class="axis-price ${cls}" style="top:${labelTop}px">${label} ${won(value)}</span>`).join("")}`;
-  requestAnimationFrame(() => { host.scrollLeft = nextScrollLeft; }); return bars;
+  legend.innerHTML = `<span class="ma20">20${maUnit}선</span><span class="ma60">60${maUnit}선</span><span class="ma120">120${maUnit}선</span><span class="bollinger">BB 20·2</span><span class="trade-buy">● 매수</span><span class="trade-sell">● 매도</span><span class="zoom">${isMobileView ? "FIT" : `×${effectiveZoom.toFixed(2)}`}</span>`; const priceNotes = [{ label: "평균", value: number(item.averagePurchasePrice), cls: "purchase" }, { label: "현재", value: number(item.lastPrice), cls: "current" }].filter(({ value }) => Number.isFinite(value) && value > 0).sort((left, right) => y(left.value) - y(right.value)); let previousLabelTop = -Infinity; const placedPriceNotes = priceNotes.map((note) => ({ ...note, labelTop: previousLabelTop = Math.max(y(note.value), previousLabelTop + 22) })); axis.innerHTML = `${priceAxis.map(({ value, top }) => `<span class="axis-tick" style="top:${top - 9}px">${Math.round(value).toLocaleString("ko-KR")}</span>`).join("")}${placedPriceNotes.map(({ label, value, cls, labelTop }) => `<span class="axis-price ${cls}" style="top:${labelTop}px">${label} ${won(value)}</span>`).join("")}`;
+  requestAnimationFrame(() => { if (!isMobileView) host.scrollLeft = nextScrollLeft; else host.scrollLeft = 0; }); return bars;
 }
 
 async function init() {
@@ -238,18 +246,20 @@ async function init() {
     crosshairEl = host.querySelector(".chart-crosshair");
     requestAnimationFrame(() => { rendering = false; renderedScrollLeft = host.scrollLeft; });
   };
-  host.addEventListener("scroll", () => { if (rendering || Math.abs(host.scrollLeft - renderedScrollLeft) < 1) return; cancelAnimationFrame(scrollFrame); scrollFrame = requestAnimationFrame(render); });
+  const isMobileHost = () => typeof window !== "undefined" && (window.innerWidth <= 820 || document.documentElement.classList.contains("is-mobile"));
+  host.addEventListener("scroll", () => { if (isMobileHost() || rendering || Math.abs(host.scrollLeft - renderedScrollLeft) < 1) return; cancelAnimationFrame(scrollFrame); scrollFrame = requestAnimationFrame(render); });
   host.addEventListener("pointermove", (event) => {
     const crosshair = crosshairEl; const count = chartBars.length; if (!crosshair || !count) return;
     const bounds = host.getBoundingClientRect(); const pointerX = event.clientX - bounds.left;
-    const index = chartHoverIndex(count, host.scrollLeft, pointerX, chartZoom); const width = chartWidth(count, chartZoom);
-    const x = 58 + index * (width - 170) / Math.max(index ? count - 1 : 1, 1); const hoverY = Math.max(28, Math.min(740, event.clientY - bounds.top));
-    crosshair.setAttribute("d", `M${x} 28V740 M58 ${hoverY}H${width - 112}`); crosshair.removeAttribute("hidden");
+    const mobile = isMobileHost(); const effZoom = mobile ? 1 : chartZoom;
+    const w = mobile ? host.clientWidth : chartWidth(count, effZoom); const axisW = mobile ? (window.innerWidth <= 520 ? 72 : 88) : 112;
+    const index = chartHoverIndex(count, mobile ? 0 : host.scrollLeft, pointerX, effZoom); const x = 58 + index * (w - 58 - axisW) / Math.max(count - 1, 1); const hoverY = Math.max(28, Math.min(740, event.clientY - bounds.top));
+    crosshair.setAttribute("d", `M${x} 28V740 M58 ${hoverY}H${w - axisW}`); crosshair.removeAttribute("hidden");
     const bar = chartBars[index]; if (!bar || !tooltip) return;
     tooltip.textContent = `${timeLabel(bar.time, selectedUnit)} · 종가 ${money(bar.close, chartCurrency)}`; tooltip.removeAttribute("hidden"); tooltip.style.left = `${Math.max(8, Math.min(host.clientWidth - tooltip.offsetWidth - 8, pointerX + 12))}px`; tooltip.style.top = `${Math.max(8, Math.min(host.clientHeight - tooltip.offsetHeight - 8, event.clientY - bounds.top + 12))}px`;
   });
   host.addEventListener("pointerleave", () => { const crosshair = host.querySelector(".chart-crosshair"); if (crosshair) crosshair.setAttribute("hidden", ""); document.getElementById("analysis-chart-tooltip")?.setAttribute("hidden", ""); });
-  host.addEventListener("wheel", (event) => { if (!event.shiftKey) return; event.preventDefault(); chartZoom = Math.min(3, Math.max(.35, chartZoom * (event.deltaY < 0 ? 1.15 : 1 / 1.15))); localStorage.setItem(ANALYSIS_ZOOM_STORAGE_KEY, String(chartZoom)); render(); }, { passive: false });
+  host.addEventListener("wheel", (event) => { if (isMobileHost()) return; if (!event.shiftKey) return; event.preventDefault(); chartZoom = Math.min(3, Math.max(.35, chartZoom * (event.deltaY < 0 ? 1.15 : 1 / 1.15))); localStorage.setItem(ANALYSIS_ZOOM_STORAGE_KEY, String(chartZoom)); render(); }, { passive: false });
   const load = async () => {
     const summary = document.getElementById("private-summary"); const status = document.getElementById("private-status"); summary.hidden = false; status.textContent = "보유 정보를 불러오는 중입니다.";
     const portfolio = await fetch(`${API_BASE}/v1/portfolio`, { headers: { authorization: `Bearer ${token}` } });
@@ -261,6 +271,7 @@ async function init() {
     if (!items.length) { holdings.textContent = "일별 데이터가 없습니다."; host.textContent = "보유종목 일별 데이터가 아직 동기화되지 않았습니다."; return; }
     render();
   };
+  let resizeTimer; window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { renderKeys.delete(host); render(); }, 120); });
   await load(); setInterval(() => load().catch(console.error), 60_000);
 }
 

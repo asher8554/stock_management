@@ -3,11 +3,12 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, minimum-scale=1, user-scalable=no">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://stock-management-private-api.household-account-asher.workers.dev; base-uri 'self'">
   <meta name="description" content="보유종목 기술 분석">
   <title>포트폴리오 분석</title>
-  <link rel="stylesheet" href="styles.css?v=20260822-19">
+  <script>(function(){function a(){var m=/Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent)||matchMedia("(pointer:coarse)").matches||innerWidth<=820;document.documentElement.classList.toggle("is-mobile",m);document.documentElement.classList.toggle("is-desktop",!m)}a();addEventListener("resize",a);addEventListener("orientationchange",a);document.addEventListener("gesturestart",function(e){e.preventDefault()});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false})})()</script>
+  <link rel="stylesheet" href="styles.css?v=20260823-32">
 </head>
 <body>
   <header>
@@ -27,6 +28,6 @@
     </section>
     <section class="analysis-chart" aria-label="보유종목 기술 분석"><div class="analysis-chart-shell"><div id="analysis-chart-host" aria-live="polite"></div><div id="analysis-chart-tooltip" role="status" hidden></div><div id="analysis-chart-legend" aria-label="이동평균선 범례"></div><div id="analysis-chart-axis" aria-label="가격 축"></div></div><div id="analysis-units" class="analysis-ranges" aria-label="차트 단위"></div><div id="analysis-ranges" class="analysis-ranges" aria-label="차트 기간"></div></section>
   </main>
-  <script type="module" src="analysis.mjs?v=20260823-40"></script>
+  <script type="module" src="analysis.mjs?v=20260823-41"></script>
 </body>
 </html>
